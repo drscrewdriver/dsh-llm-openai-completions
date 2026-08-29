@@ -1,5 +1,15 @@
 # dsh-llm-openai-completions
 
+- [English README](./README.md)
+- [中文 README](./README.zh.md)
+- [日本語 README](./README.ja.md)
+- [한국어 README](./README.ko.md)
+- [Installation guide](./INSTALL.md)
+- [中文安装指南](./INSTALL.zh.md)
+- [日本語インストールガイド](./INSTALL.ja.md)
+- [한국어 설치 안내](./INSTALL.ko.md)
+- [Changelog](./CHANGELOG.md)
+
 **OpenAI-completions-compatible adapter for custom gateways** (vLLM / LM Studio / self-hosted OpenAI proxies) — a "fourth adapter class" next to `llm-deepseek` and `llm-pi-ai`, with behavior that never guesses:
 
 - `system` is **always** `role: "system"` — a custom gateway never receives `developer`, so the `Unexpected message role` 400 is gone even when thinking is enabled (pi-ai's `detectCompat` defaults `supportsDeveloperRole: true` for non-standard URLs, which breaks every custom gateway once a `reasoningEfforts` table marks the model as reasoning).
