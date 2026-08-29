@@ -1,0 +1,3 @@
+- insert:
+    - id: dsh-llm-openai-completions
+      name: dsh-llm-openai-completions
