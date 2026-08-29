@@ -27,7 +27,10 @@ The plugin replaces the stream of the providers you list (default off; existing
 routes owned by llm-pi-ai are wrapped, not re-registered, so no adapter
 conflict). **The short-circuit settings contract — the `llm-openai-completions`
 namespace, its fields, the takeover semantics, and the wire behavior — is
-specified in [docs/settings-spec.md](docs/settings-spec.md).**
+specified in [docs/settings-spec.md](docs/settings-spec.md).** Third-party
+plugins (e.g. a dsh-thinking-effort control layer) that want to interoperate
+with this takeover mechanism should follow the standard
+**[docs/takeover-spec.md](docs/takeover-spec.md)** (Takeover Control Spec).
 
 ```yaml
 # ~/.dsh/profiles/web/cordis.patch.yml (or Settings → Plugins → dsh-llm-openai-completions)
