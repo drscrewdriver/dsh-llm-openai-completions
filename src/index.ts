@@ -18,6 +18,7 @@
  */
 import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
+import { readFileSync, writeFileSync } from 'node:fs'
 import type { GenerateOptions, LlmAdapter } from '@deepseek-ai/dsh-llm'
 import { OpenAiCompletionsAdapter } from './adapter/adapter.ts'
 import { providerResolverOf } from './adapter/config.ts'
@@ -53,17 +54,19 @@ function installSettingsSection(
   ns: string,
   schema: unknown,
   entry: Config,
-  onChange: () => void,
+  hooks: { setSource: (source: () => Config) => void; onChange: () => void },
 ): void {
   ;(ctx as unknown as { inject(deps: string[], fn: (sctx: {
     settings: SettingsServiceLike
     effect(cleanup: () => (() => void) | void, label?: string): void
   }) => void): void }).inject(['settings'], (sctx) => {
     const scope = sctx.settings.register(ns, schema, { base: entry })
+    hooks.setSource(() => scope.get() as Config)
+    hooks.onChange()
     sctx.effect(() => () => {
-      onChange()
+      hooks.onChange()
     })
-    scope.watch(() => onChange())
+    scope.watch(() => hooks.onChange())
   })
 }
 
@@ -79,18 +82,41 @@ export function apply(ctx: Context, config: Config): void {
   const llm = ctx.get('llm') as { adapters?: Map<string, { adapter: LlmAdapter }> } | undefined
   const settings = ctx.get('settings') as { get?: (ns: string) => unknown } | undefined
   const adapter = new OpenAiCompletionsAdapter(providerResolverOf(settings))
-  const wrapped: StreamFn = (options) => adapter.stream(options)
+  const wrapped: StreamFn = (options) => {
+    debug({ event: 'wrapped.stream', provider: options.provider, model: options.model, effort: options.reasoningEffort })
+    return adapter.stream(options)
+  }
+
+  // Temporary runtime diagnostics (writes a small JSON log under $DSH_HOME).
+  const DEBUG_FILE = process.env.DSH_HOME
+    ? `${process.env.DSH_HOME}/llm-openai-completions-debug.json`
+    : `${process.cwd()}/llm-openai-completions-debug.json`
+  const debug = (entry: Record<string, unknown>): void => {
+    try {
+      let lines: unknown[] = []
+      try { lines = JSON.parse(readFileSync(DEBUG_FILE, 'utf8')) as unknown[] } catch { /* fresh */ }
+      lines.push({ at: new Date().toISOString(), ...entry })
+      writeFileSync(DEBUG_FILE, JSON.stringify(lines, null, 2), 'utf8')
+    } catch (error) {
+      // Diagnostics must never break the plugin; surface the write failure.
+      try { writeFileSync(`${DEBUG_FILE}.err`, String(error), 'utf8') } catch { /* ignore */ }
+    }
+  }
+  debug({ event: 'apply', settingsService: settings !== undefined, adaptersRegistered: [...(llm?.adapters?.keys() ?? [])] })
 
   // Last-applied original streams per provider, for restore on disable.
   const originals = new Map<string, LlmAdapter['stream']>()
 
   const applyWrap = (): void => {
-    for (const provider of config.providers) {
+    debug({ event: 'applyWrap', providers: current().providers, enabled: current().enabled })
+    for (const provider of current().providers) {
       const registration = llm?.adapters?.get(provider)
+      debug({ event: 'applyWrap.provider', provider, found: registration !== undefined })
       if (registration === undefined) continue
       if (registration.adapter.stream === wrapped) continue
       if (!originals.has(provider)) originals.set(provider, registration.adapter.stream)
       registration.adapter.stream = wrapped as LlmAdapter['stream']
+      debug({ event: 'applyWrap.wrapped', provider })
     }
   }
   const applyUnwrap = (): void => {
@@ -104,15 +130,21 @@ export function apply(ctx: Context, config: Config): void {
   }
   const rewrap = (): void => {
     applyUnwrap()
-    if (config.enabled) applyWrap()
+    if (current().enabled) applyWrap()
+    else debug({ event: 'rewrap.skipped', enabled: current().enabled })
   }
 
-  let current = config
-  installSettingsSection(ctx, SETTINGS_NAMESPACE, Config, config, () => {
-    // Re-read the active section; enabling/disabling or editing providers
-    // takes effect on the next llm/adapters-updated or immediately here.
-    current = config
-    rewrap()
+  // Runtime-adjustable configuration source: composition entry is the base,
+  // the settings namespace layers on top.
+  let current: () => Config = () => config
+  installSettingsSection(ctx, SETTINGS_NAMESPACE, Config, config, {
+    setSource: (source) => {
+      current = source
+      debug({ event: 'setSource', value: source() })
+    },
+    onChange: () => {
+      rewrap()
+    },
   })
 
   const onAny = ctx.on as unknown as (event: string, listener: (...args: never[]) => unknown) => void
@@ -120,9 +152,26 @@ export function apply(ctx: Context, config: Config): void {
     rewrap()
   })
 
+  // Watch the live registration state: if llm-pi-ai re-registers with a fresh
+  // adapter instance, our wrap disappears — this catches that.
+  const watch = setInterval(() => {
+    try {
+      const reg = llm?.adapters?.get('local-35b')
+      debug({
+        event: 'watch',
+        found: reg !== undefined,
+        streamWrapped: reg?.adapter?.stream === wrapped,
+        adapterCtor: reg?.adapter?.constructor?.name ?? null,
+        providersInMap: [...(llm?.adapters?.keys() ?? [])],
+        enabled: current().enabled,
+      })
+    } catch { /* ignore */ }
+  }, 3000)
+
   // Initial application (llm-pi-ai may register after this plugin).
   rewrap()
   ctx.effect(() => () => {
     applyUnwrap()
+    clearInterval(watch)
   }, 'dsh-llm-openai-completions: unwrap on unload')
 }
