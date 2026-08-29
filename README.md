@@ -14,10 +14,10 @@ Configuration lives in the **llm-pi-ai** section (Settings → Models): baseURL,
 ## Install
 
 ```bash
+# npm (recommended)
+dsh plugin --profile web add dsh-llm-openai-completions -w
 # local link (development)
-dsh plugin --profile web add link:E:/test/rewrite-agently/dsh-llm-openai-completions -w
-# npm (once published)
-# dsh plugin --profile web add dsh-llm-openai-completions -w
+# dsh plugin --profile web add link:E:/test/rewrite-agently/dsh-llm-openai-completions -w
 dsh web
 ```
 
@@ -25,7 +25,9 @@ dsh web
 
 The plugin replaces the stream of the providers you list (default off; existing
 routes owned by llm-pi-ai are wrapped, not re-registered, so no adapter
-conflict):
+conflict). **The short-circuit settings contract — the `llm-openai-completions`
+namespace, its fields, the takeover semantics, and the wire behavior — is
+specified in [docs/settings-spec.md](docs/settings-spec.md).**
 
 ```yaml
 # ~/.dsh/profiles/web/cordis.patch.yml (or Settings → Plugins → dsh-llm-openai-completions)

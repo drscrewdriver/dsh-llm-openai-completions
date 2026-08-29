@@ -18,7 +18,6 @@
  */
 import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
-import { readFileSync, writeFileSync } from 'node:fs'
 import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
 import { OpenAiCompletionsAdapter } from './adapter/adapter.ts'
 import { providerResolverOf } from './adapter/config.ts'
@@ -82,28 +81,14 @@ export function apply(ctx: Context, config: Config): void {
     ctx.get('settings') as { get?: (ns: string) => unknown } | undefined
   const adapter = new OpenAiCompletionsAdapter((provider) => providerResolverOf(resolveSettings())(provider))
 
-  // Temporary runtime diagnostics (writes a small JSON log next to cwd).
-  const DEBUG_FILE = `${process.cwd()}/llm-openai-completions-debug.json`
-  const debug = (entry: Record<string, unknown>): void => {
-    try {
-      let lines: unknown[] = []
-      try { lines = JSON.parse(readFileSync(DEBUG_FILE, 'utf8')) as unknown[] } catch { /* fresh */ }
-      lines.push({ at: new Date().toISOString(), ...entry })
-      writeFileSync(DEBUG_FILE, JSON.stringify(lines, null, 2), 'utf8')
-    } catch { /* diagnostics must never break the plugin */ }
-  }
-
   // Runtime-adjustable configuration source: composition entry is the base,
   // the settings namespace layers on top.
   let current: () => Config = () => config
   installSettingsSection(ctx, SETTINGS_NAMESPACE, Config, config, {
     setSource: (source) => {
       current = source
-      debug({ event: 'setSource', enabled: source().enabled, providers: source().providers })
     },
-    onChange: () => {
-      debug({ event: 'configChanged', enabled: current().enabled, providers: current().providers })
-    },
+    onChange: () => {},
   })
 
   // Take over the llm/stream waterfall for configured providers. prepend keeps
@@ -116,13 +101,9 @@ export function apply(ctx: Context, config: Config): void {
   on('llm/stream', async function* (options, next) {
     const cfg = current()
     if (cfg.enabled && cfg.providers.includes(options.provider)) {
-      debug({ event: 'takeover', provider: options.provider, model: options.model, effort: options.reasoningEffort })
       yield* adapter.stream(options)
       return
     }
-    debug({ event: 'passthrough', provider: options.provider, enabled: cfg.enabled, providers: cfg.providers })
     yield* next()
   }, { prepend: true })
-
-  debug({ event: 'apply', settingsService: resolveSettings() !== undefined })
 }
