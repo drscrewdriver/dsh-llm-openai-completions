@@ -222,7 +222,13 @@ export async function* translate(payloads: AsyncIterable<string>): AsyncGenerato
           yield { type: 'block-start', index: block.index, blockType: 'tool-call' }
         }
         if (call.id !== undefined) block.callId = call.id
-        if (call.function?.name !== undefined) block.name = call.function.name
+        // Only a NON-EMPTY name updates the block. Gateways (mimo / vLLM /
+        // Qwen3) repeat `function.name` on later deltas — sometimes as null or
+        // "" alongside the arguments fragment — and overwriting the name
+        // captured on the first delta would make the harness assemble a
+        // tool-call with an empty name (`unknown tool ""`).
+        const name = call.function?.name
+        if (typeof name === 'string' && name.length > 0) block.name = name
         const fragment = call.function?.arguments ?? ''
         block.text += fragment
         yield {

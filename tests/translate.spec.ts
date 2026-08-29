@@ -70,6 +70,35 @@ describe('translate — reasoning fields and tool calls', () => {
     expect(block.name).toBe('bash')
     expect(block.arguments).toBe('{"a"}}')
   })
+
+  it('keeps the tool-call name when a later delta carries null function.name', async () => {
+    // Some gateways (mimo / vLLM / Qwen3) send tool_calls where a later delta
+    // repeats `function: { name: null }` alongside the arguments fragment. That
+    // must NOT overwrite the name captured on the first delta — otherwise the
+    // harness assembles a tool-call with an empty name and the executor rejects
+    // it as `unknown tool ""`.
+    const events = await run([
+      JSON.stringify({ choices: [{ delta: { tool_calls: [{ index: 0, id: 'c1', function: { name: 'write', arguments: '{"pa' } }] } }] }),
+      JSON.stringify({ choices: [{ delta: { tool_calls: [{ index: 0, function: { name: null, arguments: 'th":"a"}' } }] } }] }),
+      JSON.stringify({ choices: [{ delta: {}, finish_reason: 'tool_calls' }] }),
+      '[DONE]',
+    ])
+    const block = events.find(e => e.type === 'block-end')?.block as { type: string; id: string; name: string; arguments: string }
+    expect(block.name).toBe('write')
+    expect(block.arguments).toBe('{"path":"a"}')
+  })
+
+  it('keeps the tool-call name when a later delta repeats an empty function.name string', async () => {
+    const events = await run([
+      JSON.stringify({ choices: [{ delta: { tool_calls: [{ index: 0, id: 'c1', function: { name: 'read', arguments: '{"pa' } }] } }] }),
+      JSON.stringify({ choices: [{ delta: { tool_calls: [{ index: 0, function: { name: '', arguments: 'th":"a"}' } }] } }] }),
+      JSON.stringify({ choices: [{ delta: {}, finish_reason: 'tool_calls' }] }),
+      '[DONE]',
+    ])
+    const block = events.find(e => e.type === 'block-end')?.block as { type: string; id: string; name: string; arguments: string }
+    expect(block.name).toBe('read')
+    expect(block.arguments).toBe('{"path":"a"}')
+  })
 })
 
 describe('translate — usage and finish', () => {
