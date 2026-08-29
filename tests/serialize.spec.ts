@@ -21,19 +21,41 @@ describe('serializeRequest — system role', () => {
 })
 
 describe('serializeRequest — thinking fields', () => {
-  it('qwen format: enable_thinking from the effort, never reasoning_effort', () => {
-    const body = serializeRequest({
-      provider: 'local-35b', model: 'Qwen3.6-35B-A3B', messages: [], reasoningEffort: 'high',
-    } as never, capability({ thinkingFormat: 'qwen' }))
-    expect(body.enable_thinking).toBe(true)
-    expect(body.reasoning_effort).toBeUndefined()
-    expect(body.chat_template_kwargs).toBeUndefined()
+  it('toggle model (no effort): chat_template_kwargs.enable_thinking, never reasoning_effort', () => {
+    // A toggle model (supportsReasoningEffort:false — Qwen3.6 / mimo) always
+    // uses the chat-template wire: vLLM Qwen3 honors
+    // chat_template_kwargs.enable_thinking; top-level enable_thinking and
+    // reasoning_effort are ignored/rejected. The configured thinkingFormat
+    // must not matter (llm-pi-ai withholds qwen-chat-template anyway).
+    for (const format of ['openai', 'qwen', 'qwen-chat-template', undefined]) {
+      const body = serializeRequest({
+        provider: 'local-35b', model: 'Qwen3.6-35B-A3B', messages: [], reasoningEffort: 'high',
+      } as never, capability({ thinkingFormat: format }))
+      expect(body.chat_template_kwargs).toEqual({ enable_thinking: true, preserve_thinking: true })
+      expect(body.enable_thinking).toBeUndefined()
+      expect(body.reasoning_effort).toBeUndefined()
+    }
   })
 
-  it('qwen-chat-template format: chat_template_kwargs.enable_thinking', () => {
+  it('toggle model no effort: thinking on by default (chat_template_kwargs true)', () => {
+    const body = serializeRequest({
+      provider: 'local-35b', model: 'Qwen3.6-35B-A3B', messages: [],
+    } as never, capability())
+    expect(body.chat_template_kwargs).toEqual({ enable_thinking: true, preserve_thinking: true })
+  })
+
+  it('toggle model explicit off: chat_template_kwargs.enable_thinking false', () => {
+    const body = serializeRequest({
+      provider: 'local-35b', model: 'Qwen3.6-35B-A3B', messages: [], reasoningEffort: 'off',
+    } as never, capability())
+    expect(body.chat_template_kwargs).toEqual({ enable_thinking: false, preserve_thinking: true })
+    expect(body.reasoning_effort).toBeUndefined()
+  })
+
+  it('effort-capable qwen-chat-template format: chat_template_kwargs.enable_thinking', () => {
     const body = serializeRequest({
       provider: 'local-35b', model: 'Qwen3.8-27B', messages: [], reasoningEffort: 'high',
-    } as never, capability({ thinkingFormat: 'qwen-chat-template' }))
+    } as never, capability({ thinkingFormat: 'qwen-chat-template', supportsReasoningEffort: true }))
     expect(body.chat_template_kwargs).toEqual({ enable_thinking: true, preserve_thinking: true })
   })
 
@@ -42,23 +64,6 @@ describe('serializeRequest — thinking fields', () => {
       provider: 'local-35b', model: 'Qwen3.8-27B', messages: [], reasoningEffort: 'max',
     } as never, capability({ thinkingFormat: 'openai', supportsReasoningEffort: true }))
     expect(body.reasoning_effort).toBe('max')
-  })
-
-  it('no effort on a toggle model: thinking on by default (enable_thinking true)', () => {
-    // The harness strips the On toggle to no effort at all; a toggle model
-    // (supportsReasoningEffort:false) thinks by default.
-    const body = serializeRequest({
-      provider: 'local-35b', model: 'Qwen3.6-35B-A3B', messages: [],
-    } as never, capability({ thinkingFormat: 'qwen' }))
-    expect(body.enable_thinking).toBe(true)
-  })
-
-  it('explicit off on a toggle model: enable_thinking false', () => {
-    const body = serializeRequest({
-      provider: 'local-35b', model: 'Qwen3.6-35B-A3B', messages: [], reasoningEffort: 'off',
-    } as never, capability({ thinkingFormat: 'qwen' }))
-    expect(body.enable_thinking).toBe(false)
-    expect(body.reasoning_effort).toBeUndefined()
   })
 
   it('no effort on an effort-capable model: no thinking fields at all', () => {

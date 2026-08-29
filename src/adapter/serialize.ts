@@ -134,10 +134,13 @@ export function serializeMessages(messages: readonly Message[]): WireMessage[] {
  *
  * A model that does not take reasoning_effort (supportsReasoningEffort: false
  * — Qwen3.6 / mimo-v2.5 style) is a toggle: thinking is ON unless an explicit
- * `off` effort arrives, and the wire carries enable_thinking only — no
- * reasoning_effort, no effort value is required (the harness strips the On
- * toggle to no effort at all). An effort-capable model passes its level
- * through as reasoning_effort.
+ * `off` effort arrives. Its wire ALWAYS goes through `chat_template_kwargs.
+ * enable_thinking` — that is the parameter vLLM's Qwen3 chat-template models
+ * actually honor (top-level `enable_thinking` is ignored; llm-pi-ai's schema
+ * withholds `qwen-chat-template` as a configurable format, so this adapter
+ * must not depend on the configured thinkingFormat for toggle models). An
+ * effort-capable model passes its level through as reasoning_effort per its
+ * configured thinkingFormat.
  */
 function resolveThinking(
   options: GenerateOptions,
@@ -147,9 +150,15 @@ function resolveThinking(
   // Toggle models think by default: any state other than an explicit `off` is
   // thinking on. Effort-capable models need a concrete level to send one.
   const thinkingOn = effort !== 'off'
+  if (!capability.supportsReasoningEffort) {
+    // Toggle model: always the chat-template wire (vLLM Qwen3 honors
+    // chat_template_kwargs.enable_thinking; top-level enable_thinking and
+    // reasoning_effort are both ignored/rejected by such gateways).
+    return { chat_template_kwargs: { enable_thinking: thinkingOn, preserve_thinking: true } }
+  }
   const format = capability.thinkingFormat ?? 'openai'
   if (format === 'qwen') {
-    // Qwen3.6-style: the wire carries enable_thinking only — never
+    // Qwen3-style: the wire carries enable_thinking only — never
     // reasoning_effort, never a budget.
     return { enable_thinking: thinkingOn }
   }
@@ -158,7 +167,7 @@ function resolveThinking(
   }
   // openai / deepseek / zai / … effort-capable models: pass the effort through
   // (Qwen3.8-style), or omit it when thinking is off.
-  return thinkingOn && capability.supportsReasoningEffort && typeof effort === 'string'
+  return thinkingOn && typeof effort === 'string'
     ? { reasoning_effort: effort }
     : {}
 }
