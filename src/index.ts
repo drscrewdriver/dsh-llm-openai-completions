@@ -100,7 +100,15 @@ export function apply(ctx: Context, config: Config): void {
   ) => void
   on('llm/stream', async function* (options, next) {
     const cfg = current()
-    if (cfg.enabled && cfg.providers.includes(options.provider)) {
+    const takeOver = cfg.enabled && cfg.providers.includes(options.provider)
+    // Debug-only: takeover decisions are observable through the settings
+    // namespace; keep the wire details out of the default log.
+    ctx.logger?.debug?.(
+      '[llm-openai-completions] stream provider=%s model=%s effort=%s enabled=%s providers=%j takeOver=%s',
+      String(options.provider), String(options.model), String(options.reasoningEffort),
+      cfg.enabled, cfg.providers, takeOver,
+    )
+    if (takeOver) {
       yield* adapter.stream(options)
       return
     }
