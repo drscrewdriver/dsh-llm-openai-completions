@@ -77,14 +77,11 @@ llm-pi-ai:
 接管后，每个被接管 provider 的模型请求按以下契约序列化：
 
 - **system 永远 `role: "system"`**：自定义网关绝不收到 `developer`（pi-ai 对非标准 URL 默认 `supportsDeveloperRole: true` 会 400）。根因之一。
-- **思考由模型的 `compat.thinkingFormat` 驱动**：
-  | `thinkingFormat` | wire |
-  |---|---|
-  | `qwen` | 顶层 `enable_thinking: boolean`（部分 Qwen 部署；不发 `reasoning_effort`，不发 budget） |
-  | `qwen-chat-template` | `chat_template_kwargs: { enable_thinking, preserve_thinking: true }`（**vLLM Qwen3 系列推荐**——vLLM 的 OpenAI 兼容接口经 `chat_template_kwargs` 控制 Qwen3 思考，顶层 `enable_thinking` 不生效） |
-  | 其它（`openai`/`deepseek`/`zai`…） | 当 `reasoningEffort` 存在且 `supportsReasoningEffort === true` 时发 `reasoning_effort: <effort>`，否则不发 |
-- **思考开关判定**：`thinkingOn = reasoningEffort !== 'off'`——toggle 模型（supportsReasoningEffort: false）**无 effort 也默认开思考**（On 由 harness 剥离为无 effort，wire 发 enable_thinking/chat_template_kwargs true）；显式 `off` 才关闭。
-- **`supportsReasoningEffort` 仅显式声明**：裸 `reasoningEfforts` 表（如 `{ off: null, high: 'high' }`）是 toggle-only 模型，wire 走 `enable_thinking`，绝不当 effort-capable。与 dsh-thinking-levels 的 `piAiPosture` 完全对齐。
+- **思考由模型能力驱动**（toggle vs effort）：
+  - **toggle 模型（`supportsReasoningEffort: false`）**：**固定发 `chat_template_kwargs: { enable_thinking, preserve_thinking: true }`**，与 `thinkingFormat` 配置无关——这是 vLLM Qwen3 系列唯一生效的思考开关（顶层 `enable_thinking` 被忽略；llm-pi-ai schema 又 withheld `qwen-chat-template`，故本适配器不依赖该字段）。已对真实 vLLM 网关验证。
+  - **effort 模型（`supportsReasoningEffort: true`）**：按 `thinkingFormat` 走——`qwen` → 顶层 `enable_thinking`；`qwen-chat-template` → `chat_template_kwargs`；其它 → `reasoning_effort: <effort>`。
+- **思考开关判定**：`thinkingOn = reasoningEffort !== 'off'`——toggle 模型**无 effort 也默认开思考**；显式 `off` 才关闭。
+- **`supportsReasoningEffort` 仅显式声明**：裸 `reasoningEfforts` 表（如 `{ off: null, high: 'high' }`）是 toggle-only 模型，wire 固定走 `chat_template_kwargs`，绝不当 effort-capable。与 dsh-thinking-levels 的 `piAiPosture` 完全对齐。
 - **`</think>` 分离**：接收侧把 Qwen3 风格的 `</think>` 内容（vLLM 把思考渲染进 `content`）切分到 reasoning 块，不混入正文。
 - **不做 `thinking_budget`**（刻意，防截断）。
 - **文本优先，不支持图片**：图片块抛 `UNSUPPORTED_CONTENT`。
