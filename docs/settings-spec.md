@@ -80,10 +80,10 @@ llm-pi-ai:
 - **思考由模型的 `compat.thinkingFormat` 驱动**：
   | `thinkingFormat` | wire |
   |---|---|
-  | `qwen` | `enable_thinking: boolean`（Qwen3.6 风格；不发 `reasoning_effort`，不发 budget） |
-  | `qwen-chat-template` | `chat_template_kwargs: { enable_thinking, preserve_thinking: true }` |
+  | `qwen` | 顶层 `enable_thinking: boolean`（部分 Qwen 部署；不发 `reasoning_effort`，不发 budget） |
+  | `qwen-chat-template` | `chat_template_kwargs: { enable_thinking, preserve_thinking: true }`（**vLLM Qwen3 系列推荐**——vLLM 的 OpenAI 兼容接口经 `chat_template_kwargs` 控制 Qwen3 思考，顶层 `enable_thinking` 不生效） |
   | 其它（`openai`/`deepseek`/`zai`…） | 当 `reasoningEffort` 存在且 `supportsReasoningEffort === true` 时发 `reasoning_effort: <effort>`，否则不发 |
-- **思考开关判定**：`thinkingOn = reasoningEffort !== undefined && reasoningEffort !== 'off'`。
+- **思考开关判定**：`thinkingOn = reasoningEffort !== 'off'`——toggle 模型（supportsReasoningEffort: false）**无 effort 也默认开思考**（On 由 harness 剥离为无 effort，wire 发 enable_thinking/chat_template_kwargs true）；显式 `off` 才关闭。
 - **`supportsReasoningEffort` 仅显式声明**：裸 `reasoningEfforts` 表（如 `{ off: null, high: 'high' }`）是 toggle-only 模型，wire 走 `enable_thinking`，绝不当 effort-capable。与 dsh-thinking-levels 的 `piAiPosture` 完全对齐。
 - **`</think>` 分离**：接收侧把 Qwen3 风格的 `</think>` 内容（vLLM 把思考渲染进 `content`）切分到 reasoning 块，不混入正文。
 - **不做 `thinking_budget`**（刻意，防截断）。
