@@ -129,15 +129,24 @@ export function serializeMessages(messages: readonly Message[]): WireMessage[] {
   return wire
 }
 
-/** Resolve the thinking wire fields from the request effort + model capability. */
+/**
+ * Resolve the thinking wire fields from the request effort + model capability.
+ *
+ * A model that does not take reasoning_effort (supportsReasoningEffort: false
+ * — Qwen3.6 / mimo-v2.5 style) is a toggle: thinking is ON unless an explicit
+ * `off` effort arrives, and the wire carries enable_thinking only — no
+ * reasoning_effort, no effort value is required (the harness strips the On
+ * toggle to no effort at all). An effort-capable model passes its level
+ * through as reasoning_effort.
+ */
 function resolveThinking(
   options: GenerateOptions,
   capability: ModelCapability,
 ): Pick<WireRequest, 'enable_thinking' | 'chat_template_kwargs' | 'reasoning_effort'> {
   const effort = options.reasoningEffort
-  // A present effort means thinking is on (off is stripped by the request
-  // interceptor; a toggle-only model maps On → its advertised level, e.g. high).
-  const thinkingOn = effort !== undefined && effort !== 'off'
+  // Toggle models think by default: any state other than an explicit `off` is
+  // thinking on. Effort-capable models need a concrete level to send one.
+  const thinkingOn = effort !== 'off'
   const format = capability.thinkingFormat ?? 'openai'
   if (format === 'qwen') {
     // Qwen3.6-style: the wire carries enable_thinking only — never

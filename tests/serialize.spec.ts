@@ -44,11 +44,29 @@ describe('serializeRequest — thinking fields', () => {
     expect(body.reasoning_effort).toBe('max')
   })
 
-  it('no effort: thinking off (no enable_thinking / effort fields)', () => {
+  it('no effort on a toggle model: thinking on by default (enable_thinking true)', () => {
+    // The harness strips the On toggle to no effort at all; a toggle model
+    // (supportsReasoningEffort:false) thinks by default.
     const body = serializeRequest({
       provider: 'local-35b', model: 'Qwen3.6-35B-A3B', messages: [],
     } as never, capability({ thinkingFormat: 'qwen' }))
+    expect(body.enable_thinking).toBe(true)
+  })
+
+  it('explicit off on a toggle model: enable_thinking false', () => {
+    const body = serializeRequest({
+      provider: 'local-35b', model: 'Qwen3.6-35B-A3B', messages: [], reasoningEffort: 'off',
+    } as never, capability({ thinkingFormat: 'qwen' }))
     expect(body.enable_thinking).toBe(false)
+    expect(body.reasoning_effort).toBeUndefined()
+  })
+
+  it('no effort on an effort-capable model: no thinking fields at all', () => {
+    const body = serializeRequest({
+      provider: 'local-35b', model: 'Qwen3.8-27B', messages: [],
+    } as never, capability({ thinkingFormat: 'openai', supportsReasoningEffort: true }))
+    expect(body.enable_thinking).toBeUndefined()
+    expect(body.reasoning_effort).toBeUndefined()
   })
 })
 
