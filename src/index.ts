@@ -76,8 +76,11 @@ function installSettingsSection(
  * @param config - composition entry.
  */
 export function apply(ctx: Context, config: Config): void {
-  const settings = ctx.get('settings') as { get?: (ns: string) => unknown } | undefined
-  const adapter = new OpenAiCompletionsAdapter(providerResolverOf(settings))
+  // The settings service may not be resolvable via ctx.get at apply time
+  // (it registers later); resolve it lazily on every lookup instead.
+  const resolveSettings = (): { get?: (ns: string) => unknown } | undefined =>
+    ctx.get('settings') as { get?: (ns: string) => unknown } | undefined
+  const adapter = new OpenAiCompletionsAdapter((provider) => providerResolverOf(resolveSettings())(provider))
 
   // Temporary runtime diagnostics (writes a small JSON log next to cwd).
   const DEBUG_FILE = `${process.cwd()}/llm-openai-completions-debug.json`
@@ -121,5 +124,5 @@ export function apply(ctx: Context, config: Config): void {
     yield* next()
   }, { prepend: true })
 
-  debug({ event: 'apply', settingsService: settings !== undefined })
+  debug({ event: 'apply', settingsService: resolveSettings() !== undefined })
 }
