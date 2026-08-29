@@ -86,8 +86,11 @@ export function providerResolverOf(settings: SettingsRead | undefined): Provider
         const input = model['input']
         models[id] = {
           ...typeof compat['thinkingFormat'] === 'string' ? { thinkingFormat: compat['thinkingFormat'] } : {},
-          supportsReasoningEffort: compat['supportsReasoningEffort'] === true
-            || Object.keys(efforts).length > 0,
+          // Only the explicit compat flag marks an effort-capable model. A bare
+          // reasoningEfforts table (Qwen3.6-style: { off: null, high: 'high' })
+          // is a toggle-only model — the wire takes enable_thinking, never
+          // reasoning_effort. Mirror dsh-thinking-levels' piAiPosture exactly.
+          supportsReasoningEffort: compat['supportsReasoningEffort'] === true,
           reasoningEfforts: efforts,
           vision: Array.isArray(input) && input.includes('image'),
         }
