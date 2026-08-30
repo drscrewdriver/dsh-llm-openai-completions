@@ -42,6 +42,16 @@ Configuration lives in the **llm-pi-ai** section (Settings → Models): baseURL,
 > action, or edited by hand in `settings.yaml` — one shared config, the adapter just reads it. Full field
 > table and wire contract: [docs/settings-spec.md §4.1](docs/settings-spec.md).
 
+## Preview
+
+Live screenshot — **powered together with dsh-thinking-levels**: the custom model's "thinkable"
+level dropdown (Default / Off / On). It demonstrates the capability-detection → takeover chain:
+
+<figure>
+  <img style="max-width:100%" alt="Custom model thinking-level dropdown (Qwen3.6-35B-A3B, options Default/Off/On): the detection + takeover chain — the dsh-thinking-levels capability card writes input/reasoningEfforts/compat on the llm-pi-ai model entry, then the dsh-llm-openai-completions adapter reads them and takes over the wire behavior (compat.thinkingFormat: qwen→enable_thinking, effort-capable→reasoning_effort passthrough)" src="assets/自定义模型的可思考.png" />
+  <figcaption>Joint capability card + takeover chain with dsh-thinking-levels: one shared llm-pi-ai config — the <strong>card detects</strong> (writes input/reasoningEfforts/compat), the <strong>adapter takes over the wire</strong> (sends enable_thinking / reasoning_effort per compat.thinkingFormat).</figcaption>
+</figure>
+
 ## Install
 
 ```bash

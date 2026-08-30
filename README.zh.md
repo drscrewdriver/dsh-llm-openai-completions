@@ -21,6 +21,15 @@
 
 > **能力识别配置**：视觉/思考/是否支持 reason-effort/档位均读取 llm-pi-ai 模型条目的 `input` / `reasoningEfforts` / `compat` 字段（官方基础编辑器不提供这些确认项）。它们由 **dsh-thinking-levels** 能力卡片按用户操作写入、或手工编辑 `settings.yaml`。完整字段表与 wire 契约详见 [docs/settings-spec.md §4.1](docs/settings-spec.md)。
 
+## 界面预览
+
+实际运行截屏——**联合 dsh-thinking-levels**：自定义模型的「可思考」档位下拉（Default / Off / On），这正是能力识别与接管链路二合一的演示：
+
+<figure>
+  <img style="max-width:100%" alt="自定义模型可思考档位下拉（Qwen3.6-35B-A3B，选项 Default/Off/On）：档位识别与接管链路——dsh-thinking-levels 能力卡片把 input/reasoningEfforts/compat 写入 llm-pi-ai 模型条目，dsh-llm-openai-completions 适配器据此读取并接管 wire 行为（compat.thinkingFormat：qwen→enable_thinking、effort-capable→reasoning_effort 透传）" src="assets/自定义模型的可思考.png" />
+  <figcaption>联合 dsh-thinking-levels 的能力卡片 + 接管链路：同一份 llm-pi-ai 配置，<strong>卡片负责识别</strong>（写入 input/reasoningEfforts/compat），<strong>本适配器负责接管 wire</strong>（按 compat.thinkingFormat 发送 enable_thinking / reasoning_effort）。</figcaption>
+</figure>
+
 ## 安装
 
 ```bash
