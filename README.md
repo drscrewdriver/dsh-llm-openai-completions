@@ -17,9 +17,30 @@
   - `qwen` → wire `enable_thinking: boolean` (Qwen3.6-style; no `reasoning_effort`, no budget)
   - `qwen-chat-template` → `chat_template_kwargs.enable_thinking` (+ preserve)
   - effort-capable → `reasoning_effort` passthrough (Qwen3.8-style)
-- The receive side splits Qwen3-style `</think>` content (vLLM renders thinking into `content` with no `reasoning_content` field) into a reasoning block — no more thinking text mixed into the body.
+- The receive side splits Qwen3-style ` response` content (vLLM renders thinking into `content` with no `reasoning_content` field) into a reasoning block — no more thinking text mixed into the body.
 
-Configuration lives in the **llm-pi-ai** section (Settings → Models): baseURL, models, `reasoningEfforts`, `compat.thinkingFormat`. This plugin only swaps the wire behavior of the providers you list.
+## 🎉 Major Feature — Vision/Image Input (v0.2.0)
+
+Vision models can now **receive user-uploaded images — single or multiple** (multi-image order
+preserved, text parts interleaved in source order):
+
+- When the target model declares vision capability in its llm-pi-ai config (`input` contains `image`,
+  written by the dsh-thinking-levels capability card as `['text','image']`), user `image` content
+  blocks are serialized as OpenAI-compatible multi-part `content` arrays — each `image_url` is a
+  `data:<mediaType>;base64,<…>` data URI (bytes resolved via the attachment store's `readImage` and
+  base64-encoded). Multiple images in one message are supported and kept in order.
+- **Non-vision models still reject loudly** (`UNSUPPORTED_CONTENT`) — nothing is silently dropped.
+- Requirements: image reading depends on the host providing `ctx.attachments` (attachment store);
+  text-only models are unaffected.
+
+Configuration lives in the **llm-pi-ai** section (Settings → Models): baseURL, models,
+`reasoningEfforts`, `compat.thinkingFormat`, `input`. This plugin only swaps the wire behavior of the providers you list.
+
+> **Capability detection config**: vision / thinking / reason-effort support / level tiers are all read
+> from a model entry's `input` / `reasoningEfforts` / `compat` fields in llm-pi-ai (the base editor does
+> **not** expose these fields). They are written by the **dsh-thinking-levels** capability card per user
+> action, or edited by hand in `settings.yaml` — one shared config, the adapter just reads it. Full field
+> table and wire contract: [docs/settings-spec.md §4.1](docs/settings-spec.md).
 
 ## Install
 
@@ -65,9 +86,11 @@ llm-pi-ai:
             thinkingFormat: qwen        # enable_thinking only, no reasoning_effort
 ```
 
-## Known limitations (v0.1.0)
+## Known limitations (v0.2.0)
 
-- **Text-only**: image blocks are rejected with `UNSUPPORTED_CONTENT` (image bytes live in the attachment service, out of scope for v1).
+- **Non-vision models do not support images**: a model that does not declare image input (via `input`
+  containing `image`) is rejected with `UNSUPPORTED_CONTENT` (image bytes live in the attachment
+  service and are only resolved on the vision path).
 - **No `thinking_budget`** (deliberate: avoid truncation surprises).
 - The thinking-level **selector** still comes from the model's reasoning metadata (llm-pi-ai + dsh-thinking-levels' Off/On toggle); this plugin controls the wire behavior.
 - Restart `dsh web` after install; the wrap re-applies on `llm/adapters-updated`.

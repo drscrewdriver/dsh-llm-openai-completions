@@ -48,9 +48,9 @@ llm-pi-ai:
             thinkingFormat: qwen        # enable_thinking만, reasoning_effort 없음
 ```
 
-## 알려진 제한사항 (v0.1.0)
+## 알려진 제한사항 (v0.2.0)
 
-- **텍스트 전용**: 이미지 블록은 `UNSUPPORTED_CONTENT`로 거부(이미지 바이트는 첨부 서비스에 있음, v1에서는 범위 밖).
+- **비전 모델이 아닌 경우 이미지 미지원**: `input`에 `image`를 선언하지 않은 모델은 이미지 메시지를 `UNSUPPORTED_CONTENT`로 거부(이미지 바이트는 첨부 서비스에 있으며 비전 경로에서만 해석).
 - **`thinking_budget` 없음**(의도적: 잘림의 예상치 못한 상황을 피하기 위해).
 - thinking 레벨의 **selector**는 여전히 모델의 추론 메타데이터에서(llm-pi-ai + dsh-thinking-levels의 Off/On 토글); 본 플러그인은 wire 동작을 제어합니다.
 - 설치 후 `dsh web`을 재시작; wrap은 `llm/adapters-updated`에서 재적용됩니다.

@@ -1,6 +1,6 @@
 {
   "name": "dsh-llm-openai-completions",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "OpenAI-completions-compatible adapter for custom gateways (vLLM / LM Studio / self-hosted proxies): always role:\"system\", enable_thinking / chat_template_kwargs / reasoning_effort driven by the llm-pi-ai model config, and a </think> split on the receive side — no pi-ai behavior guessing.",
   "type": "module",
   "main": "lib/index.js",

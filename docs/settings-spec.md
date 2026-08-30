@@ -67,10 +67,29 @@ llm-pi-ai:
       baseURL: http://192.168.100.242:8200/v1
       models:
         - id: Qwen3.6-35B-A3B
-          reasoningEfforts: { off: null, high: 'high' }
+          input: [text, image]                  # 视觉：列表含 image → 允许图片输入
+          reasoningEfforts: { off: null, high: 'high' }   # 思考档位表
           compat:
-            thinkingFormat: qwen        # enable_thinking only, no reasoning_effort
+            thinkingFormat: qwen                # enable_thinking only, no reasoning_effort
+            supportsReasoningEffort: false      # true → effort 能力；false → toggle-only
 ```
+
+### 4.1 能力配置项（视觉 / 思考）——单一事实源在 llm-pi-ai
+
+本适配器**从 llm-pi-ai 模型条目读取以下能力字段**（只读，不复制、不自建保留位），用于判定视觉与思考 wire 行为：
+
+| 能力 | 字段 | 取值语义 | 适配器用途 |
+|---|---|---|---|
+| 视觉 | `models[].input` | 数组含 `image` → 视觉 | `capability.vision`；视觉模型允许 `image` 块序列化，否则抛 `UNSUPPORTED_CONTENT` |
+| 思考格式 | `compat.thinkingFormat` | `qwen` / `qwen-chat-template` / 其它 | 决定 enable_thinking / chat_template_kwargs / reasoning_effort 哪个 wire 字段生效 |
+| 是否支持 reason-effort | `compat.supportsReasoningEffort` | `true` → effort 能力；`false`/缺失 → toggle-only | effort 模型走 `reasoning_effort`；toggle 模型固定 `chat_template_kwargs` |
+| 思考等级 | `reasoningEfforts` | 档位表（level → 线上 wire 值） | 结合上述用作文档/联动依据；本适配器 wire 判定按 `supportsReasoningEffort` |
+
+> **官方编辑器不含这些字段**：Settings → Models 的基础 provider 编辑器只在每个模型上暴露「上下文窗口」「最大输出 token」，**不提供视觉 / 思考 / reason-effort 的确认项**。
+>
+> **写法来源**：这些能力项由 **dsh-thinking-levels** 的能力卡片按用户操作写入同一 llm-pi-ai 命名空间（勾选「视觉模型」→ `input:['text','image']`；勾选思考档位 → `reasoningEfforts`/`compat`），也可手工编辑 `settings.yaml`。**二者共用同一份配置**，本适配器照读即可，识别无需额外改动。
+>
+> **回退链（与 llm-pi-ai 对齐）**：模型未设 `input` 时回退到 **provider 级 `defaultInput`**，再不然按纯文本（`['text']`）；模型未设 `compat` 时回退到 **provider 级 `compat`**。这样「在路由上声明一次视觉/思考」与「在单个模型上声明」等效——与 llm-pi-ai 的 `entry.input ?? defaultInput` / `model.compat ?? route.compat` 解析链一致。
 
 ## 5. Wire 行为契约
 
@@ -84,7 +103,8 @@ llm-pi-ai:
 - **`supportsReasoningEffort` 仅显式声明**：裸 `reasoningEfforts` 表（如 `{ off: null, high: 'high' }`）是 toggle-only 模型，wire 固定走 `chat_template_kwargs`，绝不当 effort-capable。与 dsh-thinking-levels 的 `piAiPosture` 完全对齐。
 - **`</think>` 分离**：接收侧把 Qwen3 风格的 `</think>` 内容（vLLM 把思考渲染进 `content`）切分到 reasoning 块，不混入正文。
 - **不做 `thinking_budget`**（刻意，防截断）。
-- **文本优先，不支持图片**：图片块抛 `UNSUPPORTED_CONTENT`。
+- **视觉模型（`input` 含 `image`）支持图片**：单/多图按序序列化为 `content` 数组段的 `image_url` data URI（`data:<mediaType>;base64,...`），与文本段原顺序交错，一张不丢；字节经附件存储 `readImage` 读取并 base64 编码。
+- **非视觉模型收到图片仍抛 `UNSUPPORTED_CONTENT`**：目标模型未声明视觉能力时，图片块不静默丢弃，仍大声拒绝。
 
 ## 6. 与 dsh-thinking-levels 的自动联动
 

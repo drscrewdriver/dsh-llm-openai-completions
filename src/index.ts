@@ -20,6 +20,7 @@ import type { Context } from '@deepseek-ai/cordis'
 import z from '@deepseek-ai/schemastery'
 import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
 import { OpenAiCompletionsAdapter } from './adapter/adapter.ts'
+import type { AttachmentStoreLike } from './adapter/adapter.ts'
 import { providerResolverOf } from './adapter/config.ts'
 
 /** Plugin settings. */
@@ -79,7 +80,12 @@ export function apply(ctx: Context, config: Config): void {
   // (it registers later); resolve it lazily on every lookup instead.
   const resolveSettings = (): { get?: (ns: string) => unknown } | undefined =>
     ctx.get('settings') as { get?: (ns: string) => unknown } | undefined
-  const adapter = new OpenAiCompletionsAdapter((provider) => providerResolverOf(resolveSettings())(provider))
+  const adapter = new OpenAiCompletionsAdapter(
+    (provider) => providerResolverOf(resolveSettings())(provider),
+    // The attachment service may register after apply; resolve it lazily on
+    // every stream (vision models only), never during apply.
+    () => ctx.get('attachments') as AttachmentStoreLike | undefined,
+  )
 
   // Runtime-adjustable configuration source: composition entry is the base,
   // the settings namespace layers on top.

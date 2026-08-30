@@ -48,9 +48,9 @@ llm-pi-ai:
             thinkingFormat: qwen        # enable_thinking のみ、reasoning_effort なし
 ```
 
-## 既知の制限 (v0.1.0)
+## 既知の制限 (v0.2.0)
 
-- **テキストのみ**：画像ブロックは `UNSUPPORTED_CONTENT` で拒否（画像バイトは添付サービスにあり、v1 では範囲外）。
+- **非ビジョンモデルは画像非対応**：入力に `image` を宣言していないモデルは、画像付きメッセージを `UNSUPPORTED_CONTENT` で拒否（画像バイトは添付サービスにあり、ビジョンパスのみで解決）。
 - **`thinking_budget` なし**（意図的：切り落としの予期せぬ事態を避けるため）。
 - thinking レベルの**セレクタ**は依然としてモデルの推論メタデータ由来（llm-pi-ai + dsh-thinking-levels の Off/On トグル）；本プラグインは wire 挙動を制御します。
 - インストール後 `dsh web` を再起動；wrap は `llm/adapters-updated` で再適用されます。

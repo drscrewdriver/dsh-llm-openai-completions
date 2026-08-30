@@ -12,6 +12,7 @@
 import { attributionHeaders, LlmAdapter, LlmError } from '@deepseek-ai/dsh-llm'
 import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
 import { serializeRequest } from './serialize.ts'
+import type { ImageSource } from './serialize.ts'
 import { parseSse } from './sse.ts'
 import { translate } from './translate.ts'
 import type { ProviderResolver } from './config.ts'
@@ -28,12 +29,22 @@ function httpErrorCode(status: number): string {
 /** The capability used when the model id is not declared: no thinking. */
 const UNKNOWN_CAPABILITY = { supportsReasoningEffort: false, reasoningEfforts: {}, vision: false } as const
 
+/** Minimal attachment-store face for resolving durable image bytes at runtime. */
+export interface AttachmentStoreLike {
+  readImage(ref: unknown, signal?: AbortSignal): Promise<{ data: Uint8Array }>
+}
+
 /**
  * Adapter for custom openai-completions gateways.
  * @param resolveProvider - live provider lookup (from the llm-pi-ai section).
+ * @param resolveAttachments - lazy attachment-store lookup (for vision models);
+ *   may resolve to undefined when the host lacks an attachment service.
  */
 export class OpenAiCompletionsAdapter extends LlmAdapter {
-  constructor(private readonly resolveProvider: ProviderResolver) {
+  constructor(
+    private readonly resolveProvider: ProviderResolver,
+    private readonly resolveAttachments: () => AttachmentStoreLike | undefined,
+  ) {
     super()
   }
 
@@ -51,7 +62,24 @@ export class OpenAiCompletionsAdapter extends LlmAdapter {
       )
     }
     const capability = provider.models[options.model] ?? UNKNOWN_CAPABILITY
-    const body = serializeRequest(options, capability)
+    // Vision models resolve image bytes through the injected attachment store;
+    // non-vision models get no image source and keep rejecting images loudly.
+    const image: ImageSource | undefined = capability.vision
+      ? {
+          readImage: async (ref) => {
+            const store = this.resolveAttachments()
+            if (store === undefined) {
+              throw new LlmError(
+                `provider "${options.provider}" has no attachment store to resolve image content.`,
+                'UNSUPPORTED_CONTENT',
+              )
+            }
+            const { data } = await store.readImage(ref, options.signal)
+            return { mediaType: ref.mediaType, base64: Buffer.from(data).toString('base64') }
+          },
+        }
+      : undefined
+    const body = await serializeRequest(options, capability, image)
     const apiKey = provider.apiKeyEnv !== undefined ? process.env[provider.apiKeyEnv] : undefined
     const headers = {
       ...apiKey === undefined ? {} : { authorization: `Bearer ${apiKey}` },

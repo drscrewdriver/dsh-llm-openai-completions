@@ -21,9 +21,32 @@ import type { ModelCapability } from './config.ts'
 /** One wire chat-completions message. */
 export type WireMessage =
   | { role: 'system'; content: string }
-  | { role: 'user'; content: string }
+  | { role: 'user'; content: string | WireContentPart[] }
   | { role: 'assistant'; content: string; tool_calls?: WireToolCall[]; reasoning_content?: string }
   | { role: 'tool'; tool_call_id: string; content: string }
+
+/**
+ * One wire content part rendered on a user turn. Text and image URLs are
+ * interleaved in the order of the source blocks; gateways require the
+ * OpenAI-compatible `image_url` shape for vision requests.
+ */
+export type WireContentPart =
+  | { type: 'text'; text: string }
+  | { type: 'image_url'; image_url: { url: string } }
+
+/** Minimal durable image-reference shape (duck-typed against the attachment service). */
+export interface ImageRef {
+  attachmentId: string
+  mediaType: string
+  bytes: number
+  width: number
+  height: number
+}
+
+/** Resolves durable image refs to inline data-URI parts for vision requests. */
+export interface ImageSource {
+  readImage(ref: ImageRef, signal?: AbortSignal): Promise<{ mediaType: string; base64: string }>
+}
 
 /** One wire tool call. */
 export interface WireToolCall {
@@ -86,13 +109,47 @@ function serializeAssistant(message: Message): WireMessage {
 }
 
 /**
+ * Walk a user message's text/image blocks into OpenAI-compatible wire parts.
+ * Text and image parts stay interleaved in the source-block order; bytes are
+ * resolved through the image source (an attachment store) into data URIs.
+ * @param blocks - the user message content blocks, in order.
+ * @param image - the attachment-aware image source (vision-capable only).
+ * @returns the ordered wire content parts.
+ */
+async function serializeUserParts(
+  blocks: readonly ContentBlock[],
+  image: ImageSource,
+): Promise<WireContentPart[]> {
+  const parts: WireContentPart[] = []
+  for (const block of blocks) {
+    if (block.type === 'text') {
+      if (block.text.length > 0) parts.push({ type: 'text', text: block.text })
+    } else if (block.type === 'image') {
+      const { mediaType, base64 } = await image.readImage(block.attachment)
+      parts.push({ type: 'image_url', image_url: { url: `data:${mediaType};base64,${base64}` } })
+    }
+  }
+  return parts
+}
+
+/**
  * Serialize the conversation. `tool-result` blocks become standalone
- * `{role: 'tool'}` messages; a mixed user message contributes its text first
- * and its tool results as separate wire messages after.
+ * `{role: 'tool'}` messages; a mixed user message contributes its content
+ * first and its tool results as separate wire messages after.
+ *
+ * When a user message carries `image` blocks:
+ * - with a vision-capable model, `image` is supplied (see adapter) and the
+ *   blocks render as interleaved text/image wire parts in original order;
+ * - otherwise (`image` undefined) the adapter rejects them loudly instead of
+ *   silently erasing content, like the official deepseek adapter.
  * @param messages - the harness conversation, in order.
+ * @param image - the attachment-aware image source, or undefined for text-only.
  * @returns the wire messages; order preserved, tool results expanded.
  */
-export function serializeMessages(messages: readonly Message[]): WireMessage[] {
+export async function serializeMessages(
+  messages: readonly Message[],
+  image: ImageSource | undefined,
+): Promise<WireMessage[]> {
   const wire: WireMessage[] = []
   for (const message of messages) {
     if (message.role === 'system') {
@@ -103,17 +160,21 @@ export function serializeMessages(messages: readonly Message[]): WireMessage[] {
       wire.push(serializeAssistant(message))
       continue
     }
+    // Image gating applies only to top-level user content (bytes live in the
+    // attachment service); nested tool-result images are not expanded, matching
+    // the existing text-first behavior for tool results.
+    if (message.content.some(block => block.type === 'image')) {
+      if (image === undefined) {
+        throw new LlmError(
+          'The openai-completions adapter does not support image content.',
+          'UNSUPPORTED_CONTENT',
+        )
+      }
+      wire.push({ role: 'user', content: await serializeUserParts(message.content, image) })
+      continue
+    }
     const toolResults = message.content.filter(block => block.type === 'tool-result')
     const text = flattenText(message.content)
-    // Image blocks are attachment references (bytes live in the attachment
-    // service); this text-first adapter rejects them loudly instead of
-    // silently erasing content, like the official deepseek adapter.
-    if (message.content.some(block => block.type === 'image')) {
-      throw new LlmError(
-        'The openai-completions adapter does not support image content.',
-        'UNSUPPORTED_CONTENT',
-      )
-    }
     if (text.length > 0 || toolResults.length === 0) {
       wire.push({ role: 'user', content: text })
     }
@@ -175,18 +236,21 @@ function resolveThinking(
 /**
  * Build the full wire request. Always streaming with usage reporting.
  * @param options - the harness request (model, history, system, tools, sampling).
- * @param capability - the model's capability config (thinking format, effort).
+ * @param capability - the model's capability config (thinking format, effort, vision).
+ * @param image - the attachment-aware image source; only honored when the
+ *   model is vision-capable (non-vision models keep rejecting images loudly).
  * @returns the chat-completions request body.
  */
-export function serializeRequest(
+export async function serializeRequest(
   options: GenerateOptions,
   capability: ModelCapability,
-): WireRequest {
+  image: ImageSource | undefined,
+): Promise<WireRequest> {
   const messages: WireMessage[] = []
   if (options.system !== undefined) {
     messages.push({ role: 'system', content: options.system })
   }
-  messages.push(...serializeMessages(options.messages))
+  messages.push(...await serializeMessages(options.messages, capability.vision ? image : undefined))
 
   const tools: WireTool[] | undefined = options.tools?.map(tool => ({
     type: 'function',

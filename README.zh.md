@@ -7,9 +7,19 @@
   - `qwen` → 发送 `enable_thinking: boolean`（Qwen3.6 风格；无 `reasoning_effort`、无 budget）
   - `qwen-chat-template` → `chat_template_kwargs.enable_thinking`（+ 保留）
   - 具备 effort 能力的 → `reasoning_effort` 透传（Qwen3.8 风格）
-- 接收端将 Qwen3 风格的 `</think>` 内容拆分——将 thinking 文本提取为独立的 reasoning block（vLLM 将 thinking 渲染到 `content` 中，无 `reasoning_content` 字段）——不再出现 thinking 文本混入正文。
+- 接收端将 Qwen3 风格的 ` response` 内容拆分——将 thinking 文本提取为独立的 reasoning block（vLLM 将 thinking 渲染到 `content` 中，无 `reasoning_content` 字段）——不再出现 thinking 文本混入正文。
 
-配置位于 **llm-pi-ai** 设置区（设置 → 模型）：baseURL、models、`reasoningEfforts`、`compat.thinkingFormat`。本插件仅替换你列出的提供者的 wire 行为。
+## 🎉 重大更新：视觉模型图片输入（v0.2.0）
+
+视觉模型现在**可以接收用户上传的图片**（单张或多张，多图按序保留，文本与图片交错）：
+
+- 目标模型在 llm-pi-ai 配置中声明视觉能力（`input` 含 `image`，由 dsh-thinking-levels 能力卡片写入 `['text','image']`）时，用户消息中的 `image` 内容块会被序列化为 OpenAI-compatible 的多段 `content` 数组——每个 `image_url` 为一个 `data:<mediaType>;base64,<…>` data URI（附件字节经附件存储 `readImage` 读取并 base64 编码）。同一消息内支持**多张图片**且顺序不丢。
+- **非视觉模型**仍对图片大声拒绝（`UNSUPPORTED_CONTENT`），绝不静默丢弃。
+- 依赖说明：读图需要宿主提供 `ctx.attachments`（附件存储）；纯文本模型不受影响。
+
+配置位于 **llm-pi-ai** 设置区（设置 → 模型）：baseURL、models、`reasoningEfforts`、`compat.thinkingFormat`、`input`。本插件仅替换你列出的提供者的 wire 行为。
+
+> **能力识别配置**：视觉/思考/是否支持 reason-effort/档位均读取 llm-pi-ai 模型条目的 `input` / `reasoningEfforts` / `compat` 字段（官方基础编辑器不提供这些确认项）。它们由 **dsh-thinking-levels** 能力卡片按用户操作写入、或手工编辑 `settings.yaml`。完整字段表与 wire 契约详见 [docs/settings-spec.md §4.1](docs/settings-spec.md)。
 
 ## 安装
 
@@ -48,9 +58,9 @@ llm-pi-ai:
             thinkingFormat: qwen        # 仅 enable_thinking，无 reasoning_effort
 ```
 
-## 已知限制 (v0.1.0)
+## 已知限制 (v0.2.0)
 
-- **纯文本**：图片块被拒绝，返回 `UNSUPPORTED_CONTENT`（图片字节存在于附件服务中，v1 不在范围内）。
+- **非视觉模型不支持图片**：未在配置声明视觉能力（`input` 含 `image`）的模型收到图片会返回 `UNSUPPORTED_CONTENT`（图片字节存在于附件服务中，仅在视觉模型路径解析）。
 - **无 `thinking_budget`**（有意为之：避免截断意外）。
 - thinking 级别的**选择器**仍然来自模型的推理元数据（llm-pi-ai + dsh-thinking-levels 的 Off/On 切换）；本插件控制 wire 行为。
 - 安装后重启 `dsh web`；wrap 在 `llm/adapters-updated` 时重新应用。

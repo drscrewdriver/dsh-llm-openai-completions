@@ -48,6 +48,16 @@ interface PiAiSection {
   providers?: Record<string, {
     baseURL?: unknown
     apiKeyEnv?: unknown
+    /**
+     * Route-wide thinking capability, applied to models that do not set their
+     * own `compat` (mirrors llm-pi-ai's route `compat` fallback).
+     */
+    compat?: unknown
+    /**
+     * Route-wide input modalities, applied to models without an explicit
+     * `input` (mirrors llm-pi-ai's `defaultInput` fallback).
+     */
+    defaultInput?: unknown
     models?: unknown
   }>
 }
@@ -73,6 +83,14 @@ export function providerResolverOf(settings: SettingsRead | undefined): Provider
     if (baseURL === undefined) return undefined
 
     const models: Record<string, ModelCapability> = {}
+    // Route-wide capability defaults, then per-model fields override them —
+    // the same fallback chain llm-pi-ai resolves (`defaultInput`, route `compat`).
+    const routeCompat = typeof profile.compat === 'object' && profile.compat !== null && !Array.isArray(profile.compat)
+      ? profile.compat as Record<string, unknown>
+      : {}
+    const routeInput = Array.isArray(profile.defaultInput)
+      ? profile.defaultInput as unknown[]
+      : undefined
     if (Array.isArray(profile.models)) {
       for (const entry of profile.models) {
         if (typeof entry !== 'object' || entry === null || Array.isArray(entry)) continue
@@ -81,9 +99,14 @@ export function providerResolverOf(settings: SettingsRead | undefined): Provider
         if (id === undefined || id.length === 0) continue
         const compat = typeof model['compat'] === 'object' && model['compat'] !== null && !Array.isArray(model['compat'])
           ? model['compat'] as Record<string, unknown>
-          : {}
+          : routeCompat
         const efforts = isEffortsTable(model['reasoningEfforts']) ? model['reasoningEfforts'] : {}
-        const input = model['input']
+        // Modality fallback mirrors llm-pi-ai: entry `input` wins, then the
+        // route's `defaultInput`, then text-only. A vision gateway that declares
+        // `defaultInput: [text, image]` once must classify every model the same.
+        const input = Array.isArray(model['input'])
+          ? model['input'] as unknown[]
+          : routeInput
         models[id] = {
           ...typeof compat['thinkingFormat'] === 'string' ? { thinkingFormat: compat['thinkingFormat'] } : {},
           // Only the explicit compat flag marks an effort-capable model. A bare
@@ -92,7 +115,7 @@ export function providerResolverOf(settings: SettingsRead | undefined): Provider
           // reasoning_effort. Mirror dsh-thinking-levels' piAiPosture exactly.
           supportsReasoningEffort: compat['supportsReasoningEffort'] === true,
           reasoningEfforts: efforts,
-          vision: Array.isArray(input) && input.includes('image'),
+          vision: (input ?? ['text']).includes('image'),
         }
       }
     }

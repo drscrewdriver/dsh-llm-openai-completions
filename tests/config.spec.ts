@@ -71,4 +71,53 @@ describe('providerResolverOf — model capability resolution', () => {
     const model = providerResolverOf(settings)('local-35b')?.models['Qwen3.8-27B']
     expect(model?.supportsReasoningEffort).toBe(true)
   })
+
+  it('model without input inherits the route defaultInput (vision gateway, pi-ai fallback)', () => {
+    const settings = settingsOf({
+      'llm-pi-ai': {
+        providers: {
+          'local-35b': {
+            baseURL: 'http://host/v1',
+            defaultInput: ['text', 'image'],
+            models: [{ id: 'Qwen3.6-35B-A3B' }],
+          },
+        },
+      },
+    })
+    const model = providerResolverOf(settings)('local-35b')?.models['Qwen3.6-35B-A3B']
+    expect(model?.vision).toBe(true)
+  })
+
+  it('model with an explicit text-only input overrides a vision defaultInput', () => {
+    const settings = settingsOf({
+      'llm-pi-ai': {
+        providers: {
+          'local-35b': {
+            baseURL: 'http://host/v1',
+            defaultInput: ['text', 'image'],
+            models: [{ id: 'Qwen3.6-35B-A3B', input: ['text'] }],
+          },
+        },
+      },
+    })
+    const model = providerResolverOf(settings)('local-35b')?.models['Qwen3.6-35B-A3B']
+    expect(model?.vision).toBe(false)
+  })
+
+  it('model without compat inherits the route compat (thinkingFormat)', () => {
+    const settings = settingsOf({
+      'llm-pi-ai': {
+        providers: {
+          'local-35b': {
+            baseURL: 'http://host/v1',
+            compat: { thinkingFormat: 'qwen', supportsReasoningEffort: false },
+            models: [{ id: 'Qwen3.6-35B-A3B' }],
+          },
+        },
+      },
+    })
+    const model = providerResolverOf(settings)('local-35b')?.models['Qwen3.6-35B-A3B']
+    expect(model?.thinkingFormat).toBe('qwen')
+    expect(model?.supportsReasoningEffort).toBe(false)
+  })
 })
