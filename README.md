@@ -1,5 +1,7 @@
 # dsh-llm-openai-completions
 
+> ⛔ **This project is discontinued and delisted (2026-10-01).** `dsh-thinking-levels` no longer needs it, so it is no longer maintained: npm stays at 0.1.0, the 0.2.0 line (vision / image input) was never published and will not be, and there will be no releases or host-version-line adaptation.
+
 - [English README](./README.md)
 - [中文 README](./README.zh.md)
 - [日本語 README](./README.ja.md)

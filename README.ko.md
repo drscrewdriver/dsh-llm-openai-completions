@@ -1,5 +1,7 @@
 # dsh-llm-openai-completions
 
+> ⛔ **이 프로젝트는 제외되었으며 유지보수가 중단되었습니다(2026-10-01).** `dsh-thinking-levels`가 더 이상 이 플러그인을 필요로 하지 않습니다. npm은 0.1.0에서 멈췄고, 0.2.0(비전/이미지 입력 버전)은 공개된 적 없이 공개되지 않으며, 앞으로도 릴리스나 호스트 라인 대응은 없습니다.
+
 **커스텀 게이트웨이용 OpenAI-completions 호환 어댑터** (vLLM / LM Studio / 자체 호스트 OpenAI 프록시) — `llm-deepseek` 및 `llm-pi-ai`와 나란한 "네 번째 어댑터 클래스"로, 추측하지 않는 동작을 제공합니다:
 
 - `system` 역할은 **항상** `role: "system"` — 커스텀 게이트웨이에는 `developer`가 전달되지 않으므로, thinking이 활성화되어도 `Unexpected message role` 400이 사라집니다(pi-ai의 `detectCompat`는 표준이 아닌 URL에 대해 `supportsDeveloperRole: true`를 기본값으로 설정하며, `reasoningEfforts` 테이블에서 모델을 추론용으로 마크하면 모든 게이트웨이를 파괴합니다).

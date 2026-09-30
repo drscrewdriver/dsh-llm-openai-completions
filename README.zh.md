@@ -1,5 +1,7 @@
 # dsh-llm-openai-completions
 
+> ⛔ **本项目已除名并停止维护（2026-10-01）。** `dsh-thinking-levels` 已不再需要本插件：npm 止步 0.1.0，本地 0.2.0（视觉/图片输入版）从未发布也不会再发，后续不再发版、不做宿主版本线适配。
+
 **OpenAI-completions 兼容适配器，用于自定义网关**（vLLM / LM Studio / 自托管 OpenAI 代理）—— 与 `llm-deepseek` 和 `llm-pi-ai` 并列的"第四种适配器类"，行为从不猜测：
 
 - `system` 角色**始终**映射为 `role: "system"`——自定义网关永远不会收到 `developer` 角色，因此即使启用了 thinking，`Unexpected message role` 400 错误也已消失（pi-ai 的 `detectCompat` 为非标准 URL 默认 `supportsDeveloperRole: true`，一旦 `reasoningEfforts` 表标记模型为推理模型，就会破坏所有自定义网关）。

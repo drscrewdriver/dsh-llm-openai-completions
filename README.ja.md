@@ -1,5 +1,7 @@
 # dsh-llm-openai-completions
 
+> ⛔ **本プロジェクトは除外・保守終了しました（2026-10-01）。** `dsh-thinking-levels` が本プラグインを不要としたため、今後の保守は行いません。npm は 0.1.0 で終止し、0.2.0（ビジョン/画像入力版）は未公開のまま今後も公開されず、リリースやホストラインへの対応も行いません。
+
 **カスタムゲートウェイ用 OpenAI-completions 互換アダプター**（vLLM / LM Studio / 自己ホスト OpenAI プロキシ）—— `llm-deepseek` および `llm-pi-ai` に並ぶ「第四のアダプタークラス」で、推測しない挙動を提供します：
 
 - `system` 役割は**常に** `role: "system"` —— カスタムゲートウェイに `developer` は送られないため、thinking が有効でも `Unexpected message role` 400 は消えています（pi-ai の `detectCompat` は標準でない URL に `supportsDeveloperRole: true` をデフォルト設定し、`reasoningEfforts` テーブルでモデルが推論可能とマークされると全てのゲートウェイを壊します）。

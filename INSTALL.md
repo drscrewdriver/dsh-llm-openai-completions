@@ -1,5 +1,7 @@
 # Install Guide (Official DSH CLI)
 
+> ⛔ **Discontinued (2026-10-01):** `dsh-thinking-levels` no longer needs this plugin; it stays unpublished beyond npm 0.1.0 and gets no further releases. This guide is kept for reference only.
+
 This guide uses only the official DSH `dsh plugin` command.
 
 - [English install guide](./INSTALL.md)
