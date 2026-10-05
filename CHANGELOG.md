@@ -1,12 +1,55 @@
 # Changelog
 
-## 2026-10-01 — Delisted / Discontinued
+## 0.3.0 — Revival (unreleased)
 
-### Deprecated
+> **Back from the dead (2026-10-05).** The 2026-10-01 discontinuation was about the
+> retired short-circuit *bridge* in dsh-thinking-levels — the official llm-pi-ai compat
+> face replaced it for basic wire fixes. This revival is a different deal: the transport
+> comes back as a **feature-bearing takeover** (multimodal true-send, modality gate,
+> prompt-source seam) that pi-ai cannot offer, with dsh-thinking-levels' takeover gating
+> reading this plugin's judgment. The 2026-10-01 notice below is historical.
 
-- **This project is discontinued and delisted from the maintained plugin set**: `dsh-thinking-levels` no longer needs it, so it is no longer maintained. npm stays at **0.1.0** (published 2026-08-29); the local 0.2.0 line (vision / image input) was never published and will not be. No further releases and no host-version-line adaptation (incl. 0.2.0). Discontinuation notices added to all README languages and both INSTALL guides.
+### Revival — transport takeover, modernized
 
-All notable changes to this project will be documented in this file.
+- **Short-circuit listener, dual-flag**: `llm/stream` with `{ prepend: true, global: true }`.
+  The old build registered fiber-locally and never saw LlmRuntime-originated waterfalls on
+  current hosts; `global` crosses the fiber boundary. Takeover short-circuits pi-ai
+  (`adapter.stream` without `next()`); anything else passes through untouched.
+- **Judgment, single source of truth**: `enabled && (manual providers ∪ auto-identified)`
+  where auto-identified = custom openai-completions gateway AND thinking declared — the
+  identification functions are a same-origin port of dsh-thinking-levels' `takeover-sync.ts`
+  (both repos' tests lock the semantics). The switch and manual list live in this plugin's
+  own settings section (`.volatile()` — runtime-editable, host-generated form); the
+  data plane stays in llm-pi-ai, read per request through `settings.describe()` — the
+  0.1.7+ read channel (the old `settings.get(ns)` / `settings.register` faces no longer
+  exist on any supported host, which is what killed the original architecture).
+- **Multimodal true-send**: the short-circuit consumes the waterfall BEFORE the host
+  projects file blocks to text handles, so image / audio / video / PDF blocks arrive
+  structural and are encoded (`image_url` / `input_audio` / `video_url` / OpenAI `file`
+  data-URI parts) from attachment-service bytes (`readImage` / `readFileStream`), with a
+  20 MB inline cap on video. No host patches, no file-handle reconstruction.
+- **Modality hard gate**: undeclared modalities are refused BEFORE send
+  (`INVALID_REQUEST`, naming the modality) — silent loss is replaced by an explicit
+  refusal on taken-over routes. One-shot calls (`session-title`) strip media and never think.
+- **The `llmOpenaiCompletions` prompt-source seam** (contract in AGENTS.md, mirroring
+  dsh-llm-mimo's llmMimo): `listHostedModels()` + `registerPromptSource()` let a
+  dsh-promptbook-class consumer replace the actual system prompt and tool descriptions
+  per (provider, model), with cache-safe determinism and a no-source passthrough.
+- **Credentials service**: `apiKeyEnv` resolves through `credentials.resolve(credentialRef(…))`
+  with launch-environment fallback and a loud `MISSING_CREDENTIAL` — no more bare
+  `process.env`.
+- **Host lines**: peers enum `0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2` (engines
+  `>=0.1.7-rc.2 <0.2.1-0`); `ToolCallId` import fixed for the 0.2.0 line; serializer
+  handles both message shapes (0.1.x user-embedded tool results and 0.2.0 `role: 'tool'`
+  messages).
+
+### 2026-10-01 — Delisted / Discontinued (historical)
+
+- **This project was discontinued and delisted from the maintained plugin set**:
+  `dsh-thinking-levels` no longer needed it, so it was no longer maintained. npm stayed
+  at **0.1.0** (published 2026-08-29); the local 0.2.0 line (vision / image input) was
+  never published. Superseded by the 0.3.0 revival above.
+
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 

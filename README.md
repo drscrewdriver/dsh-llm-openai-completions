@@ -1,6 +1,6 @@
 # dsh-llm-openai-completions
 
-> ⛔ **This project is discontinued and delisted (2026-10-01).** `dsh-thinking-levels` no longer needs it, so it is no longer maintained: npm stays at 0.1.0, the 0.2.0 line (vision / image input) was never published and will not be, and there will be no releases or host-version-line adaptation.
+> ✅ **Revived as 0.3.0 (2026-10-05).** The transport takeover is back with real features pi-ai cannot offer: multimodal true-send (image/audio/video/PDF) with a modality hard gate, an `llmOpenaiCompletions` prompt-source seam for dsh-promptbook-class consumers, credentials-service keys, and dual host-line support (`0.1.7-rc.2` and `0.2.0-rc.1/rc.2`). The old `settings.get`-era architecture is gone — the judgment is `enabled && (manual ∪ auto-identified)`, switch and list live in this plugin's own settings section. See [AGENTS.md](./AGENTS.md) for the contract surfaces.
 
 - [English README](./README.md)
 - [中文 README](./README.zh.md)

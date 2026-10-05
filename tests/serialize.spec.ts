@@ -7,6 +7,7 @@ const capability = (over: Partial<ModelCapability> = {}): ModelCapability => ({
   thinkingFormat: 'qwen',
   supportsReasoningEffort: false,
   reasoningEfforts: {},
+  input: ['text'],
   vision: false,
   ...over,
 })

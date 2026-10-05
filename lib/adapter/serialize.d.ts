@@ -11,10 +11,43 @@
  * - anything else       → thinking off unless an effort is set
  *
  * No `thinking_budget` is sent (user decision: avoid truncation surprises).
- * @module dsh-thinking-levels/adapter/serialize
+ *
+ * Multimodal true-send: because the short-circuit consumes the llm/stream
+ * waterfall BEFORE the host projects file blocks to text handles, image /
+ * audio / video / PDF blocks arrive structural and are encoded for the wire
+ * (`image_url` / `input_audio` / `video_url` / OpenAI `file` parts). The
+ * modality gate (enforceModalities) rejects any modality the model's llm-pi-ai
+ * `input` declaration does not name BEFORE anything is sent — silent loss is
+ * replaced by a loud refusal. One-shot calls (`purpose: 'session-title'`)
+ * strip media blocks entirely.
+ * @module dsh-llm-openai-completions/adapter/serialize
  */
-import type { GenerateOptions, Message } from '@deepseek-ai/dsh-llm';
+import type { GenerateOptions } from '@deepseek-ai/dsh-llm';
 import type { ModelCapability } from './config.ts';
+/**
+ * Duck-typed message/block faces spanning both supported host lines: 0.1.x
+ * carries tool results as blocks inside user messages, 0.2.0 as first-class
+ * `role: 'tool'` messages. The serializer handles both at runtime; the local
+ * faces avoid importing a union that only exists on one line.
+ */
+export interface WireableBlock {
+    type: string;
+    text?: string;
+    id?: string;
+    name?: string;
+    arguments?: string;
+    toolCallId?: string;
+    attachment?: {
+        attachmentId?: string;
+        mediaType?: string;
+        name?: unknown;
+    };
+}
+export interface WireableMessage {
+    role: string;
+    content?: readonly WireableBlock[];
+    toolCallId?: string;
+}
 /** One wire chat-completions message. */
 export type WireMessage = {
     role: 'system';
@@ -33,9 +66,8 @@ export type WireMessage = {
     content: string;
 };
 /**
- * One wire content part rendered on a user turn. Text and image URLs are
- * interleaved in the order of the source blocks; gateways require the
- * OpenAI-compatible `image_url` shape for vision requests.
+ * One wire content part rendered on a user turn. Text, image URLs, and the
+ * structural media parts are interleaved in the order of the source blocks.
  */
 export type WireContentPart = {
     type: 'text';
@@ -44,6 +76,23 @@ export type WireContentPart = {
     type: 'image_url';
     image_url: {
         url: string;
+    };
+} | {
+    type: 'input_audio';
+    input_audio: {
+        data: string;
+        format: string;
+    };
+} | {
+    type: 'video_url';
+    video_url: {
+        url: string;
+    };
+} | {
+    type: 'file';
+    file: {
+        filename: string;
+        file_data: string;
     };
 };
 /** Minimal durable image-reference shape (duck-typed against the attachment service). */
@@ -61,6 +110,13 @@ export interface ImageSource {
         base64: string;
     }>;
 }
+/** One collected media blob, keyed by attachment id. */
+export interface MediaBlob {
+    mediaType: string;
+    data: Uint8Array;
+}
+/** Media blobs available to the serializer, keyed by attachment id. */
+export type MediaMap = Map<string, MediaBlob>;
 /** One wire tool call. */
 export interface WireToolCall {
     id: string;
@@ -98,27 +154,41 @@ export interface WireRequest {
     max_tokens?: number;
     stop?: string[];
 }
+/** Infer a file attachment's media type from its name. */
+export declare function mediaTypeFromName(name: unknown): string | undefined;
+/** The modality one content block requires, when it carries media at all. */
+export declare function requiredModality(block: WireableBlock): string | undefined;
+/**
+ * Modality gate: reject the request when the message history carries a
+ * modality the model's `input` declaration does not name. Runs over the FULL
+ * history (the first send after a model switch naturally carries it all), so
+ * an undeclared attachment is refused loudly instead of silently degraded.
+ * @param options - the harness request.
+ * @param capability - the target model's capability (its `input` declaration).
+ * @throws LlmError naming the first missing modality and the two ways out.
+ */
+export declare function enforceModalities(options: GenerateOptions, capability: ModelCapability): void;
 /**
  * Serialize the conversation. `tool-result` blocks become standalone
  * `{role: 'tool'}` messages; a mixed user message contributes its content
  * first and its tool results as separate wire messages after.
  *
- * When a user message carries `image` blocks:
- * - with a vision-capable model, `image` is supplied (see adapter) and the
- *   blocks render as interleaved text/image wire parts in original order;
- * - otherwise (`image` undefined) the adapter rejects them loudly instead of
- *   silently erasing content, like the official deepseek adapter.
+ * Media blocks render only when the model declares the modality (the gate in
+ * enforceModalities already refused undeclared ones) and their bytes were
+ * collected.
  * @param messages - the harness conversation, in order.
  * @param image - the attachment-aware image source, or undefined for text-only.
+ * @param media - pre-collected media blobs keyed by attachment id.
  * @returns the wire messages; order preserved, tool results expanded.
  */
-export declare function serializeMessages(messages: readonly Message[], image: ImageSource | undefined): Promise<WireMessage[]>;
+export declare function serializeMessages(messages: readonly WireableMessage[], image: ImageSource | undefined, media?: MediaMap): Promise<WireMessage[]>;
 /**
  * Build the full wire request. Always streaming with usage reporting.
  * @param options - the harness request (model, history, system, tools, sampling).
- * @param capability - the model's capability config (thinking format, effort, vision).
+ * @param capability - the model's capability config (thinking format, effort, modalities).
  * @param image - the attachment-aware image source; only honored when the
  *   model is vision-capable (non-vision models keep rejecting images loudly).
+ * @param media - pre-collected media blobs keyed by attachment id.
  * @returns the chat-completions request body.
  */
-export declare function serializeRequest(options: GenerateOptions, capability: ModelCapability, image: ImageSource | undefined): Promise<WireRequest>;
+export declare function serializeRequest(options: GenerateOptions, capability: ModelCapability, image: ImageSource | undefined, media?: MediaMap): Promise<WireRequest>;
