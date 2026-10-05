@@ -31,7 +31,17 @@
     "CHANGELOG.md",
     "LICENSE",
     "docs",
-    "AGENTS.md"
+    "AGENTS.md",
+    "README.de.md",
+    "INSTALL.de.md",
+    "README.es.md",
+    "INSTALL.es.md",
+    "README.fr.md",
+    "INSTALL.fr.md",
+    "README.it.md",
+    "INSTALL.it.md",
+    "README.ru.md",
+    "INSTALL.ru.md"
   ],
   "engines": {
     "node": ">=22.19.0 || >=24.0.0",
