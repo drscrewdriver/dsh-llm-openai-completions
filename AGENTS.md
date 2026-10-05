@@ -55,8 +55,12 @@ autoIdentified  = custom openai-completions gateway AND thinking declared
 ```
 
 - The `enabled` flag lives in THIS plugin's settings section (`.volatile()` — the host
-  generates the form). There is no flag in dsh-thinking-levels; that plugin READS the
-  same judgment (`takeoverRoutesOf`) to gate its effort injection and toggle folding.
+  generates the form). dsh-thinking-levels' `takeover` switch (its own settings UI) is
+  the control-layer MASTER: on flip it mirrors `{enabled}` into this section
+  (`takeoverPatch` — identity-gated, never touches the manual providers list). The
+  judgment itself is computed here and read back by thinking-levels
+  (`takeoverRoutesOf`) for its effort-injection gating and toggle folding. Direct edits
+  to this section survive until the master switch is actually flipped again.
 - The data plane (baseURL / models / reasoningEfforts / compat / input) is and stays in
   the `llm-pi-ai` namespace, read per request through `settings.describe()`. No plugin
   may copy it — llm-pi-ai is the single source of truth.
