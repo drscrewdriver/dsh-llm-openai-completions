@@ -72,6 +72,30 @@ semantics, but no longer feed the judgment.
   with dsh-thinking-levels' `takeover-sync.ts`; both repos' unit tests
   lock the semantics. Change them in sync.
 
+## 2b. Three wire faces (per-route `api` selection)
+
+pi-ai's `api` field names exactly three protocols — the transport speaks all of
+them and picks per route:
+
+| face | endpoint | auth | system | thinking | modalities |
+|---|---|---|---|---|---|
+| `openai-completions` (default) | `{base}/chat/completions` | Bearer | `role:"system"` message | thinkingFormat matrix | image/audio/video/pdf |
+| `anthropic-messages` | `{root}/v1/messages` (root gains `/v1` when missing) | `x-api-key` + `anthropic-version: 2023-06-01` | top-level `system` (leading message extracted AND stripped) | effort off/one-shot → `thinking:{type:"disabled"}`, else enabled | **image only** (MiMo drops the rest silently) |
+| `openai-responses` | `{base}/responses` | Bearer | top-level `instructions` (same extract+strip) | `reasoning.effort`: minimal/low/medium native, xhigh/max→high, on/off omitted | image/audio/video/pdf (probe-calibrate) |
+
+- **max_tokens chain (every face)**: `options.maxTokens ?? model row maxTokens ?? route defaultMaxTokens ?? 8192` — the per-request value always wins.
+- **anthropic pairing discipline**: every tool_use must be answered by a
+  tool_result in the next turn; broken history is a loud `INVALID_REQUEST`.
+- **anthropic thinking replay**: assistant history replays text + tool_use
+  only — the harness reasoning block has no signature field, and an unsigned
+  thinking block is rejected (strictly weaker than the chat face's
+  reasoning_content passback on tool-call turns).
+- **responses boundaries**: `options.stop` has no Responses spelling (dropped);
+  reasoning effort folds honestly (no invented tiers). SSE event family:
+  `output_item.added` / `output_text.delta` / `function_call_arguments.delta` /
+  `response.completed(usage)` / `response.failed` — probe calibration pending
+  against real MiMo endpoints.
+
 ## 3. Dispatch behavior
 
 - Listener: `llm/stream`, `{ prepend: true, global: true }` — outermost, crosses the

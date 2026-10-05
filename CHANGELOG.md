@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.4.0 — Three wire faces (unreleased)
+
+- **Per-route wire face from the pi-ai `api` declaration** — the transport now
+  speaks all three protocols pi-ai can configure: `openai-completions`
+  (default, unchanged), `anthropic-messages`, and `openai-responses`.
+- **anthropic-messages face** (mimo-reference): `{base}/v1/messages`,
+  `x-api-key` + `anthropic-version` headers, top-level `system` (the leading
+  system message is extracted AND stripped — F2), required `max_tokens` with
+  the every-request-first chain `options.maxTokens ?? model row ?? route
+  default ?? 8192` (F1), `thinking:{type}` mapped from the effort (off /
+  one-shot → disabled), tools as `input_schema`, strict tool_use/tool_result
+  pairing (broken history = loud `INVALID_REQUEST`), full SSE event family
+  (thinking/signature/input_json deltas, message_start/delta usage).
+- **openai-responses face** (spec-full, probe calibration pending):
+  `{base}/responses`, `instructions`, input items with multimodal parts
+  (input_text / input_image / input_audio / input_file pdf), assistant
+  tool-call history as `function_call` + tool results as
+  `function_call_output` (both host message shapes), honest
+  `reasoning.effort` folding (xhigh/max→high; on/off omit), SSE family
+  (output_item.added / output_text.delta / function_call_arguments.delta /
+  response.completed with usage / response.failed).
+- **Face×modality gate intersection**: a modality must be declared by the
+  model AND carryable by the face (anthropic = image only — MiMo silently
+  drops the rest); refusals name the face.
+- Known boundaries: assistant thinking is not replayed on the anthropic face
+  (harness reasoning blocks carry no signature — strictly weaker than the
+  chat face's reasoning_content passback); `options.stop` has no Responses
+  spelling and is dropped; responses wire shapes await live MiMo probe
+  calibration.
+- max_tokens/model-row symmetry fix also applies to the chat face unchanged
+  (options.maxTokens has always won there).
+
+
 ## 0.3.0 — Revival (unreleased)
 
 > **Back from the dead (2026-10-05).** The 2026-10-01 discontinuation was about the

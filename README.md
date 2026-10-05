@@ -2,7 +2,7 @@
 
 > ✅ **Revived as 0.3.0 (2026-10-05).** The transport takeover is back with real features pi-ai cannot offer: multimodal true-send (image/audio/video/PDF) with a modality hard gate, an `llmOpenaiCompletions` prompt-source seam for dsh-promptbook-class consumers, credentials-service keys, and full-rc dynamic compatibility across `0.1.0-rc.8` – `0.2.0-rc.2`. The old `settings.get`-era architecture is gone — the judgment is `enabled && providers.includes(route)` (pure manual membership: the per-route checkbox is the truth), and the switch lives in this plugin's own settings section. Contract surfaces: [AGENTS.md](./AGENTS.md).
 
-**Positioning**: revived as a short-circuit backend that dsh-thinking-levels can drive — targeting the three mainstream API formats per route `api` declaration (OpenAI Chat Completions implemented; **Anthropic Messages and OpenAI Responses are next**), built primarily for Xiaomi MiMo multimodal: true audio/video/PDF send.
+**Positioning**: revived as a short-circuit backend that dsh-thinking-levels can drive — speaking **all three mainstream API formats** per route `api` declaration (OpenAI Chat Completions · Anthropic Messages · OpenAI Responses), built primarily for Xiaomi MiMo multimodal: true audio/video/PDF send.
 
 ## README languages / 说明文档
 
@@ -36,6 +36,18 @@ The short-circuit consumes the waterfall **before** the host projects file block
 ## 🎉 0.3.0 — The `llmOpenaiCompletions` prompt-source seam
 
 `ctx.provide("llmOpenaiCompletions", { listHostedModels, registerPromptSource })` — the same contract dsh-llm-mimo exposes as `llmMimo`, for dsh-promptbook-class consumers: replace the **actually dispatched** system prompt and tool descriptions per `(provider, model)`, deterministically (cache-safe), text-only (never `name`/`parameters`), zero behavior with no source registered. Scope guarantee: consulted only on taken-over routes. Full contract: [AGENTS.md §1](./AGENTS.md).
+
+## Three wire faces (per-route `api`)
+
+| face | endpoint | auth | thinking | modalities |
+|---|---|---|---|---|
+| `openai-completions` (default) | `{base}/chat/completions` | Bearer | thinkingFormat matrix | image/audio/video/pdf |
+| `anthropic-messages` | `{base}/v1/messages` | `x-api-key` + version header | off/one-shot → disabled | **image only** |
+| `openai-responses` | `{base}/responses` | Bearer | `reasoning.effort` (honest fold) | image/audio/video/pdf |
+
+- Every face: `max_tokens` = request value → model row → route default → 8192; the leading system message is extracted into the face's system channel and stripped from the message list.
+- Anthropic pairing discipline: tool_use/tool_result must pair (broken history = loud `INVALID_REQUEST`); assistant thinking is not replayed (no signature in the harness — strictly weaker than the chat face).
+- Responses boundaries: `stop` dropped (no Responses spelling); reasoning effort folds honestly; probe calibration pending against real MiMo endpoints.
 
 ## Takeover judgment (single source of truth)
 

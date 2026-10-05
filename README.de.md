@@ -2,7 +2,7 @@
 
 > ✅ **Wiederaufleben als 0.3.0 (2026-10-05).** Die Transportübernahme ist mit echten Funktionen zurück, die pi-ai nicht bieten kann: multimodale Echtzeitsendung (Bild/Audio/Video/PDF) mit hartherzigem Modalitätsgate, eine `llmOpenaiCompletions`-Prompt-Quell-Schnittstelle für dsh-promptbook-artige Konsumenten, Credentials-Service-Schlüssel und volle rc-dynamische Kompatibilität über `0.1.0-rc.8` – `0.2.0-rc.2`. Die alte `settings.get`-Architektur ist a.D. — die Beurteilung lautet `enabled && providers.includes(route)` (reine manuelle Mitgliedschaft: das Routing-Kontrollkästchen ist die Wahrheit), der Schalter liegt in der eigenen Einstellungssektion dieses Plugins. Vertragsflächen: [AGENTS.md](./AGENTS.md).
 
-**Positionierung**: als Short-Circuit-Backend wiederauflebt, das dsh-thinking-levels antreiben kann — mit dem Ziel, die drei gängigen API-Formate je Routen-`api`-Deklaration zu bedienen (OpenAI Chat Completions implementiert; **Anthropic Messages und OpenAI Responses folgen**), primär für Xiaomi-MiMo-Multimodal gebaut: echte Audio-/Video-/PDF-Sendung.
+**Positionierung**: als Short-Circuit-Backend wiederauflebt, das dsh-thinking-levels antreiben kann — das **alle drei gängigen API-Formate** je Routen-`api`-Deklaration spricht (OpenAI Chat Completions · Anthropic Messages · OpenAI Responses), primär für Xiaomi-MiMo-Multimodal gebaut: echte Audio-/Video-/PDF-Sendung.
 
 ## README-Sprachen / 说明文档
 
@@ -36,6 +36,18 @@ Der Short-Circuit konsumiert den Wasserfall **bevor** der Host Dateiblöcke zu T
 ## 🎉 0.3.0 — Die `llmOpenaiCompletions`-Prompt-Quell-Schnittstelle
 
 `ctx.provide("llmOpenaiCompletions", { listHostedModels, registerPromptSource })` — derselbe Vertrag, den dsh-llm-mimo als `llmMimo` exponiert, für dsh-promptbook-artige Konsumenten: den **tatsächlich gesendeten** Systemprompt und die Werkzeugbeschreibungen je `(provider, model)` ersetzen, deterministisch (cache-sicher), nur Text (nie `name`/`parameters`), Nullverhalten ohne registrierte Quelle. Scope-Garantie: nur innerhalb des Dispatches übernommener Routen konsultiert. Voller Vertrag: [AGENTS.md §1](./AGENTS.md).
+
+## Drei Drahtflächen (routenweise `api`)
+
+| Fläche | Endpunkt | Auth | Thinking | Modalitäten |
+|---|---|---|---|---|
+| `openai-completions` (Standard) | `{base}/chat/completions` | Bearer | thinkingFormat-Matrix | Bild/Audio/Video/PDF |
+| `anthropic-messages` | `{base}/v1/messages` | `x-api-key` + Version-Header | aus/One-Shot → disabled | **nur Bild** |
+| `openai-responses` | `{base}/responses` | Bearer | `reasoning.effort` (ehrlich gefaltet) | Bild/Audio/Video/PDF |
+
+- Alle Flächen: `max_tokens` = Anfragewert → Modellzeile → Routen-Standard → 8192; die führende Systemnachricht wird in den Systemkanal der Fläche extrahiert und aus der Nachrichtenliste entfernt.
+- Anthropic-Paarungsdisziplin: tool_use/tool_result müssen paaren (gebrochene Historie = lauter `INVALID_REQUEST`); Assistant-Thinking wird nicht wiedergegeben (kein Signaturfeld im Harness — streng schwächer als die Chat-Fläche).
+- Responses-Grenzen: `stop` verworfen (keine Responses-Schreibweise); Reasoning-Stufen ehrlich gefaltet; Probe-Kalibrierung gegen echte MiMo-Endpunkte steht aus.
 
 ## Übernahme-Beurteilung (einzige Wahrheitsquelle)
 

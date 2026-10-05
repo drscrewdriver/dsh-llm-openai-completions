@@ -2,7 +2,7 @@
 
 > ✅ **0.3.0 で復活（2026-10-05）。** トランスポートテイクオーバーが、pi-ai には無い本当の機能と共に帰ってきました：マルチモーダル真送信（画像/音声/動画/PDF）＋モーダル硬性ゲート、dsh-promptbook 系コンシューマ向けの `llmOpenaiCompletions` プロンプトソース口、クレデンシャルサービス鍵、そして `0.1.0-rc.8` – `0.2.0-rc.2` の全 rc 動的互換。旧 `settings.get` 時代のアーキテクチャは退役——判定は `enabled && providers.includes(route)`（純手動メンバーシップ：ルート毎チェックボックスが真実）で、スイッチは本プラグイン自身の設定セクションにあります。契約面：[AGENTS.md](./AGENTS.md)。
 
-**ポジショニング**：dsh-thinking-levels が結合可能なショートサーキットバックエンドとして復活——ルート毎の `api` 宣言に応じた三大主流 API フォーマット対応を目標に（OpenAI Chat Completions は実装済み；**Anthropic Messages と OpenAI Responses は次段**）、シャオミ MiMo マルチモーダルのために構築：音声・動画・PDF の真送信。
+**ポジショニング**：dsh-thinking-levels が結合可能なショートサーキットバックエンドとして復活——ルート毎の `api` 宣言に応じた**三大主流 API フォーマットを全実装**（OpenAI Chat Completions · Anthropic Messages · OpenAI Responses）、シャオミ MiMo マルチモーダルのために構築：音声・動画・PDF の真送信。
 
 ## README languages / 说明文档
 
@@ -36,6 +36,18 @@
 ## 🎉 0.3.0 — `llmOpenaiCompletions` プロンプトソース口
 
 `ctx.provide("llmOpenaiCompletions", { listHostedModels, registerPromptSource })`——dsh-llm-mimo の `llmMimo` と同一契約で、dsh-promptbook 系コンシューマ向け：`(provider, model)` ごとに**実際に送出される**システムプロンプトとツール説明を置換。決定論的純関数（キャッシュ安全）、テキストのみ（`name`/`parameters` は触らない）、ソース未登録なら挙動ゼロ。スコープ保証：テイクオーバールートのディスパッチ内でのみ参照。完全契約：[AGENTS.md §1](./AGENTS.md)。
+
+## 三つのワイヤ面（ルート毎の `api`）
+
+| 面 | エンドポイント | 認証 | thinking | モーダル |
+|---|---|---|---|---|
+| `openai-completions`（既定） | `{base}/chat/completions` | Bearer | thinkingFormat マトリクス | 画像/音声/動画/PDF |
+| `anthropic-messages` | `{base}/v1/messages` | `x-api-key` + バージョン header | off/ワンショット → disabled | **画像のみ** |
+| `openai-responses` | `{base}/responses` | Bearer | `reasoning.effort`（正直に折りたたみ） | 画像/音声/動画/PDF |
+
+- 全面共通：`max_tokens` = リクエスト値 → モデル行 → ルート既定 → 8192；leading system メッセージは各面の system チャネルへ抽出し、メッセージ列から剥がします。
+- Anthropic ペア規律：tool_use/tool_result は必ずペア（壊れた履歴 = 大声の `INVALID_REQUEST`）；アシスタント思考は再生しません（harness に署名フィールドなし——chat 面より厳密に弱い）。
+- Responses 境界：`stop` は破棄（Responses 綴りなし）；reasoning レベルは正直に折りたたみ；実機 MiMo エンドポイントへのプローブ校正は今後。
 
 ## テイクオーバー判定（単一の事実源）
 

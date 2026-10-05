@@ -2,7 +2,7 @@
 
 > ✅ **Rinato in vita come 0.3.0 (2026-10-05).** La presa in carico del trasporto è tornata con funzioni reali che pi-ai non può offrire: invio veramente multimodale (immagine/audio/video/PDF) con un cancello rigido di modalità, una giunzione di sorgente di prompt `llmOpenaiCompletions` per consumatori di tipo dsh-promptbook, chiavi via servizio credenziali e compatibilità dinamica di tutti gli rc da `0.1.0-rc.8` a `0.2.0-rc.2`. La vecchia architettura dell'era `settings.get` è andata in pensione — il giudizio è `enabled && providers.includes(route)` (appartenenza puramente manuale: la casella per rotta è la verità) e l'interruttore vive nella sezione impostazioni di questo plugin. Superfici di contratto: [AGENTS.md](./AGENTS.md).
 
-**Posizionamento**: rinato come backend a cortocircuito che dsh-thinking-levels può azionare — con l'obiettivo di servire i tre formati API principali secondo la dichiarazione `api` di ciascuna rotta (OpenAI Chat Completions implementato; **Anthropic Messages e OpenAI Responses sono il passo successivo**), costruito principalmente per il multimodale di Xiaomi MiMo: vero invio audio/video/PDF.
+**Posizionamento**: rinato come backend a cortocircuito che dsh-thinking-levels può azionare — parlante **tutti e tre i formati API principali** secondo la dichiarazione `api` di ciascuna rotta (OpenAI Chat Completions · Anthropic Messages · OpenAI Responses), costruito principalmente per il multimodale di Xiaomi MiMo: vero invio audio/video/PDF.
 
 ## Lingue del README / 说明文档
 
@@ -36,6 +36,18 @@ Il cortocircuito consuma la cascata **prima** che l'host proietti i blocchi file
 ## 🎉 0.3.0 — La giunzione di sorgente di prompt `llmOpenaiCompletions`
 
 `ctx.provide("llmOpenaiCompletions", { listHostedModels, registerPromptSource })` — lo stesso contratto che dsh-llm-mimo espone come `llmMimo`, per consumatori di tipo dsh-promptbook: sostituire il prompt di sistema e le descrizioni degli strumenti **realmente inviati** per `(provider, model)`, in modo deterministico (sicuro per la cache), solo testo (mai `name`/`parameters`), comportamento zero senza sorgente registrata. Garanzia di portata: consultato solo nel dispatch delle rotte prese in carico. Contratto completo: [AGENTS.md §1](./AGENTS.md).
+
+## Tre facce di filo (per rotta `api`)
+
+| faccia | endpoint | auth | thinking | modalità |
+|---|---|---|---|---|
+| `openai-completions` (predefinita) | `{base}/chat/completions` | Bearer | matrice thinkingFormat | immagine/audio/video/PDF |
+| `anthropic-messages` | `{base}/v1/messages` | `x-api-key` + header di versione | off/one-shot → disabled | **solo immagine** |
+| `openai-responses` | `{base}/responses` | Bearer | `reasoning.effort` (piega onesta) | immagine/audio/video/PDF |
+
+- Tutte le facce: `max_tokens` = valore della richiesta → riga del modello → predefinito della rotta → 8192; il messaggio system iniziale viene estratto nel canale system della faccia e rimosso dall'elenco.
+- Disciplina di accoppiamento anthropic: tool_use/tool_result devono accoppiarsi (cronologia rotta = `INVALID_REQUEST` ad alta voce); il thinking dell'assistente non viene riprodotto (nessun campo firma nell'harness — rigorosamente più debole della faccia chat).
+- Confini responses: `stop` scartato (nessuna ortografia Responses); livelli di reasoning piegati onestamente; calibrazione tramite sonda contro endpoint MiMo reali in arrivo.
 
 ## Giudizio di presa in carico (unica fonte di verità)
 

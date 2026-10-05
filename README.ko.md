@@ -2,7 +2,7 @@
 
 > ✅ **0.3.0 부활(2026-10-05).** 트랜스포트 테이크오버가 pi-ai로는 불가능한 실기능을 갖추어 돌아왔습니다: 멀티모달 참전송(이미지/오디오/비디오/PDF)＋모달리티 하드 게이트, dsh-promptbook 계열 컨슈머용 `llmOpenaiCompletions` 프롬프트 소스 통로, 크리덴셜 서비스 키, 그리고 `0.1.0-rc.8` – `0.2.0-rc.2` 전 rc 동적 호환. 구 `settings.get` 시대 아키텍처는 은퇴——판정은 `enabled && providers.includes(route)`(순수 수동 멤버십: 라우트별 체크박스가 진실)이며 스위치는 본 플러그인 자신의 설정 섹션에 있습니다. 계약 면: [AGENTS.md](./AGENTS.md).
 
-**포지셔닝**: dsh-thinking-levels가 결합 가능한 쇼트서킷 백엔드로 부활——라우트별 `api` 선언에 따라 세 가지 주류 API 포맷을 지원하는 것이 목표입니다(OpenAI Chat Completions는 구현됨; **Anthropic Messages와 OpenAI Responses는 다음 단계**——샤오미 MiMo 멀티모달을 위한 오디오/비디오/PDF 참전송과 함께).
+**포지셔닝**: dsh-thinking-levels가 결합 가능한 쇼트서킷 백엔드로 부활——라우트별 `api` 선언에 따라 **세 가지 주류 API 포맷을 모두 구현**했습니다(OpenAI Chat Completions · Anthropic Messages · OpenAI Responses——샤오미 MiMo 멀티모달을 위한 오디오/비디오/PDF 참전송).
 
 ## README languages / 说明文档
 
@@ -36,6 +36,18 @@
 ## 🎉 0.3.0 — `llmOpenaiCompletions` 프롬프트 소스 통로
 
 `ctx.provide("llmOpenaiCompletions", { listHostedModels, registerPromptSource })`——dsh-llm-mimo의 `llmMimo`와 동일 계약으로, dsh-promptbook 계열 컨슈머용: `(provider, model)`별로 **실제 송출되는** 시스템 프롬프트와 도구 설명을 교체. 결정론적 순수 함수(캐시 안전), 텍스트만(`name`/`parameters` 불가침), 소스 미등록 시 동작 제로. 스코프 보장: 테이크오버 라우트의 디스패치 내에서만 참조. 전체 계약: [AGENTS.md §1](./AGENTS.md).
+
+## 세 와이어 면(라우트별 `api`)
+
+| 면 | 엔드포인트 | 인증 | thinking | 모달리티 |
+|---|---|---|---|---|
+| `openai-completions`(기본) | `{base}/chat/completions` | Bearer | thinkingFormat 매트릭스 | 이미지/오디오/비디오/PDF |
+| `anthropic-messages` | `{base}/v1/messages` | `x-api-key` + 버전 header | off/원샷 → disabled | **이미지만** |
+| `openai-responses` | `{base}/responses` | Bearer | `reasoning.effort`(정직한 접기) | 이미지/오디오/비디오/PDF |
+
+- 전 면 공통: `max_tokens` = 요청값 → 모델 행 → 라우트 기본 → 8192; leading system 메시지는 각 면의 system 채널로 추출되고 메시지 목록에서 제거됩니다.
+- Anthropic 페어 규율: tool_use/tool_result는 반드시 페어(깨진 이력 = 큰 소리의 `INVALID_REQUEST`); 어시스턴트 thinking은 재생하지 않습니다(하네스에 서명 필드 없음——chat 면보다 엄격하게 약함).
+- Responses 경계: `stop` 폐기(Responses 철자 없음); reasoning 레벨은 정직하게 접기; 실기 MiMo 엔드포인트 대상 프로브 보정은 예정.
 
 ## 테이크오버 판정(단일 사실원)
 

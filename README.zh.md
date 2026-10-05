@@ -2,7 +2,7 @@
 
 > ✅ **0.3.0 复活（2026-10-05）。** 传输接管回归，带着 pi-ai 给不了的真功能：多模态真发（图片/音频/视频/PDF）+ 模态硬门禁、面向 dsh-promptbook 类消费方的 `llmOpenaiCompletions` 提示词源口子、凭据服务密钥，以及 `0.1.0-rc.8` – `0.2.0-rc.2` 全 rc 动态兼容。旧的 `settings.get` 世代架构已退役——判定为 `enabled && providers.includes(route)`（纯手工名单：逐路由勾选框就是真相），开关就在本插件自己的设置区。契约面：[AGENTS.md](./AGENTS.md)。
 
-**定位**：作为 dsh-thinking-levels 可挂接的短路后端复活——按路由 `api` 声明支持三种主流 API 格式（OpenAI Chat Completions 已实装；**Anthropic Messages 与 OpenAI Responses 为下一站**），主要为小米 MiMo 多模态打造：音视频与 PDF 真发。
+**定位**：作为 dsh-thinking-levels 可挂接的短路后端复活——按路由 `api` 声明**实装全部三种主流 API 格式**（OpenAI Chat Completions · Anthropic Messages · OpenAI Responses），主要为小米 MiMo 多模态打造：音视频与 PDF 真发。
 
 ## 说明文档 / README languages
 
@@ -36,6 +36,18 @@
 ## 🎉 0.3.0 — `llmOpenaiCompletions` 提示词源口子
 
 `ctx.provide("llmOpenaiCompletions", { listHostedModels, registerPromptSource })`——与 dsh-llm-mimo 的 `llmMimo` 同款契约，面向 dsh-promptbook 类消费方：按 `(provider, model)` 替换**实际下发**的系统提示词与工具描述，确定性纯函数（缓存安全）、只改文本（绝不碰 `name`/`parameters`）、无注册源零行为。作用域保证：只在被接管路由的 dispatch 内生效。完整契约：[AGENTS.md §1](./AGENTS.md)。
+
+## 三种线缆面（按路由 `api`）
+
+| 面 | 端点 | 认证 | 思考 | 模态 |
+|---|---|---|---|---|
+| `openai-completions`（缺省） | `{base}/chat/completions` | Bearer | thinkingFormat 矩阵 | 图片/音频/视频/PDF |
+| `anthropic-messages` | `{base}/v1/messages` | `x-api-key` + 版本头 | off/一次性 → disabled | **仅图片** |
+| `openai-responses` | `{base}/responses` | Bearer | `reasoning.effort`（诚实折叠） | 图片/音频/视频/PDF |
+
+- 每面：`max_tokens` = 请求值 → 模型行 → 路由默认 → 8192；leading system 消息提取进各面的 system 通道并从消息列表剥离。
+- Anthropic 配对纪律：tool_use/tool_result 必须配对（破碎历史 = 大声 `INVALID_REQUEST`）；助手思考不回放（harness 无签名字段——严格弱于 chat 面）。
+- Responses 边界：`stop` 丢弃（无 Responses 拼写）；reasoning 档位诚实折叠；真机探针校准待对 MiMo 端点执行。
 
 ## 接管判定（单一事实源）
 

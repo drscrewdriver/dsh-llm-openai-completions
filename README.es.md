@@ -2,7 +2,7 @@
 
 > ✅ **Revivido como 0.3.0 (2026-10-05).** La toma de control del transporte ha vuelto con funciones reales que pi-ai no puede ofrecer: envío verdadeiramente multimodal (imagen/audio/vídeo/PDF) con una compuerta dura de modalidad, una costura de fuente de prompt `llmOpenaiCompletions` para consumidores tipo dsh-promptbook, claves vía servicio de credenciales y compatibilidad dinámica de todos los rc entre `0.1.0-rc.8` – `0.2.0-rc.2`. La arquitectura de la era `settings.get` se retiró — el juicio es `enabled && providers.includes(route)` (pertenencia puramente manual: la casilla por ruta es la verdad) y el interruptor vive en la propia sección de ajustes de este plugin. Superficies de contrato: [AGENTS.md](./AGENTS.md).
 
-**Posicionamiento**: revivido como backend de cortocircuito que dsh-thinking-levels puede accionar — con el objetivo de atender los tres formatos API mainstream según la declaración `api` de cada ruta (OpenAI Chat Completions implementado; **Anthropic Messages y OpenAI Responses son el siguiente paso**), construido principalmente para el multimodal de Xiaomi MiMo: envío real de audio/vídeo/PDF.
+**Posicionamiento**: revivido como backend de cortocircuito que dsh-thinking-levels puede accionar — hablando **los tres formatos API mainstream** según la declaración `api` de cada ruta (OpenAI Chat Completions · Anthropic Messages · OpenAI Responses), construido principalmente para el multimodal de Xiaomi MiMo: envío real de audio/vídeo/PDF.
 
 ## Idiomas del README / 说明文档
 
@@ -36,6 +36,18 @@ El cortocircuito consume la cascada **antes** de que el host projete los bloques
 ## 🎉 0.3.0 — La costura de fuente de prompt `llmOpenaiCompletions`
 
 `ctx.provide("llmOpenaiCompletions", { listHostedModels, registerPromptSource })` — el mismo contrato que dsh-llm-mimo expone como `llmMimo`, para consumidores tipo dsh-promptbook: reemplazar el prompt de sistema y las descripciones de herramientas **realmente despachadas** por `(provider, model)`, determinísticamente (seguro para caché), solo texto (nunca `name`/`parameters`), comportamiento cero sin fuente registrada. Garantía de alcance: consultado solo en rutas tomadas. Contrato completo: [AGENTS.md §1](./AGENTS.md).
+
+## Tres caras de cable (por ruta `api`)
+
+| cara | endpoint | auth | thinking | modalidades |
+|---|---|---|---|---|
+| `openai-completions` (por defecto) | `{base}/chat/completions` | Bearer | matriz thinkingFormat | imagen/audio/vídeo/PDF |
+| `anthropic-messages` | `{base}/v1/messages` | `x-api-key` + header de versión | off/una vez → disabled | **solo imagen** |
+| `openai-responses` | `{base}/responses` | Bearer | `reasoning.effort` (pliegue honesto) | imagen/audio/vídeo/PDF |
+
+- Todas las caras: `max_tokens` = valor de la petición → fila del modelo → por defecto de la ruta → 8192; el mensaje system inicial se extrae al canal system de la cara y se elimina de la lista.
+- Disciplina de emparejamiento anthropic: tool_use/tool_result deben emparejarse (historial roto = `INVALID_REQUEST` en voz alta); el thinking del asistente no se reproduce (sin campo de firma en el harness — estrictamente más débil que la cara chat).
+- Límites de responses: `stop` descartado (sin ortografía Responses); niveles de reasoning plegados honestamente; calibración por sonda contra endpoints MiMo reales pendiente.
 
 ## Juicio de toma de control (única fuente de verdad)
 
