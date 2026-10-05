@@ -38,8 +38,8 @@
 - **Credentials service**: `apiKeyEnv` resolves through `credentials.resolve(credentialRef(…))`
   with launch-environment fallback and a loud `MISSING_CREDENTIAL` — no more bare
   `process.env`.
-- **Host lines**: peers enum `0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2` (engines
-  `>=0.1.7-rc.2 <0.2.1-0`); `ToolCallId` import fixed for the 0.2.0 line; serializer
+- **Host lines**: full rc enum `0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2` at all three gate
+  points (engines, dsh.plugin.json, peers) — cross-line ranges are a semver false claim; `ToolCallId` import fixed for the 0.2.0 line; serializer
   handles both message shapes (0.1.x user-embedded tool results and 0.2.0 `role: 'tool'`
   messages).
 
