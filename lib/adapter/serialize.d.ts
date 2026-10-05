@@ -24,6 +24,7 @@
  */
 import type { GenerateOptions } from '@deepseek-ai/dsh-llm';
 import type { ModelCapability } from './config.ts';
+import { type FaceId } from './face.ts';
 /**
  * Duck-typed message/block faces spanning both supported host lines: 0.1.x
  * carries tool results as blocks inside user messages, 0.2.0 as first-class
@@ -160,14 +161,20 @@ export declare function mediaTypeFromName(name: unknown): string | undefined;
 export declare function requiredModality(block: WireableBlock): string | undefined;
 /**
  * Modality gate: reject the request when the message history carries a
- * modality the model's `input` declaration does not name. Runs over the FULL
- * history (the first send after a model switch naturally carries it all), so
- * an undeclared attachment is refused loudly instead of silently degraded.
+ * modality the model's `input` declaration does not name, OR one the wire
+ * face cannot honestly carry (FACE_MODALITY intersection — MiMo's anthropic
+ * face silently drops audio/video/PDF, so a declaration alone is not enough).
+ * Runs over the FULL history (the first send after a model switch naturally
+ * carries it all), so an undeclared or unsupportable attachment is refused
+ * loudly instead of silently degraded.
  * @param options - the harness request.
  * @param capability - the target model's capability (its `input` declaration).
- * @throws LlmError naming the first missing modality and the two ways out.
+ * @param face - the wire face the request will travel on.
+ * @throws LlmError naming the first failing modality, the reason, and the ways out.
  */
-export declare function enforceModalities(options: GenerateOptions, capability: ModelCapability): void;
+export declare function enforceModalities(options: GenerateOptions, capability: ModelCapability, face: FaceId): void;
+/** Render one collected media blob to a base64 string. */
+export declare function base64Of(media: MediaBlob): string;
 /**
  * Serialize the conversation. `tool-result` blocks become standalone
  * `{role: 'tool'}` messages; a mixed user message contributes its content

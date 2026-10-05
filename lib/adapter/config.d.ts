@@ -10,6 +10,7 @@
  * edit applies to the next request without a restart.
  * @module dsh-llm-openai-completions/adapter/config
  */
+import type { FaceId } from './face.ts';
 import type { PiAiSection } from './identify.ts';
 /** The modalities a model's `input` declaration may name. */
 export declare const INPUT_MODALITIES: readonly ["text", "image", "audio", "video", "pdf"];
@@ -23,6 +24,8 @@ export interface ModelCapability {
     reasoningEfforts: Record<string, unknown>;
     /** The declared `input` modalities (route `defaultInput` inherited, text floor). */
     input: string[];
+    /** The declared per-model output ceiling (max_tokens on faces that require it). */
+    maxTokens?: number;
     /** The model accepts image input (its `input` lists image). */
     vision: boolean;
 }
@@ -32,6 +35,8 @@ export interface ProviderInfo {
     baseURL: string;
     /** Credential env reference, when configured. */
     apiKeyEnv?: string;
+    /** The wire face this route speaks (from its `api` declaration). */
+    face: FaceId;
     /** Capabilities keyed by model id. */
     models: Record<string, ModelCapability>;
 }

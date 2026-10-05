@@ -11,11 +11,11 @@
  * and pi-ai serves the route unchanged.
  *
  * Takeover judgment (single source of truth, this plugin's own settings
- * section): `enabled && (manual providers ∪ auto-identified)` where
- * auto-identified = custom openai-completions gateway AND thinking declared
- * (see adapter/identify — same-origin port of dsh-thinking-levels'
- * identification). The data plane stays in llm-pi-ai, read through
- * `describe()` per request.
+ * section): `enabled && providers.includes(route)` — pure manual membership.
+ * The capability card's per-route takeover checkbox writes exactly this list,
+ * so the checkbox, the dispatch, and dsh-thinking-levels' gating all read one
+ * truth. The data plane stays in llm-pi-ai, read through `describe()` per
+ * request.
  *
  * The adapter never guesses: `system` is always `role: "system"`, thinking is
  * driven by the model's `compat.thinkingFormat`, the receive side splits
