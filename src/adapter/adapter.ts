@@ -20,6 +20,7 @@ import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
 import { serializeRequest, enforceModalities, mediaTypeFromName } from './serialize.ts'
 import type { ImageSource, MediaMap } from './serialize.ts'
 import { serializeAnthropic, translateAnthropic } from './anthropic.ts'
+import { serializeResponses, translateResponses } from './responses.ts'
 import { rootFor } from './face.ts'
 import { parseSse } from './sse.ts'
 import { translate } from './translate.ts'
@@ -187,7 +188,9 @@ export class OpenAiCompletionsAdapter {
         }
     const body = face === 'anthropic-messages'
       ? serializeAnthropic(options, capability, media)
-      : await serializeRequest(options, capability, image, media)
+      : face === 'openai-responses'
+        ? serializeResponses(options, capability, media)
+        : await serializeRequest(options, capability, image, media)
 
     let response: Response
     try {
@@ -224,6 +227,10 @@ export class OpenAiCompletionsAdapter {
 
     if (face === 'anthropic-messages') {
       yield* translateAnthropic(parseSse(response.body))
+      return
+    }
+    if (face === 'openai-responses') {
+      yield* translateResponses(parseSse(response.body))
       return
     }
     yield* translate(parseSse(response.body))

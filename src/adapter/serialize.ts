@@ -218,7 +218,7 @@ function serializeAssistant(message: WireableMessage): WireMessage {
 }
 
 /** Render one collected media blob to a base64 string. */
-function base64Of(media: MediaBlob): string {
+export function base64Of(media: MediaBlob): string {
   return Buffer.from(media.data).toString('base64')
 }
 
