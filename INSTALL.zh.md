@@ -42,7 +42,7 @@ llm-openai-completions:
     - local-35b
 ```
 
-路由自动识别（自定义 openai-completions 网关 且 声明了思考）；手工名单补充自动条件漏掉的路由。dsh-thinking-levels 的 `takeover` 开关翻转时会镜像写入 `enabled`。
+路由经 dsh-thinking-levels 模型面板的逐路由勾选框进入接管名单（直接写 `providers`），或手工编辑名单；那里的 `takeover` 开关翻转时镜像写入 `enabled`。
 
 ## 4. 故障排查
 

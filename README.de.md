@@ -1,6 +1,6 @@
 # dsh-llm-openai-completions
 
-> ✅ **Wiederaufleben als 0.3.0 (2026-10-05).** Die Transportübernahme ist mit echten Funktionen zurück, die pi-ai nicht bieten kann: multimodale Echtzeitsendung (Bild/Audio/Video/PDF) mit hartherzigem Modalitätsgate, eine `llmOpenaiCompletions`-Prompt-Quell-Schnittstelle für dsh-promptbook-artige Konsumenten, Credentials-Service-Schlüssel und volle rc-dynamische Kompatibilität über `0.1.0-rc.8` – `0.2.0-rc.2`. Die alte `settings.get`-Architektur ist a.D. — die Beurteilung lautet `enabled && (manuell ∪ automatisch erkannt)`, der Schalter liegt in der eigenen Einstellungssektion dieses Plugins. Vertragsflächen: [AGENTS.md](./AGENTS.md).
+> ✅ **Wiederaufleben als 0.3.0 (2026-10-05).** Die Transportübernahme ist mit echten Funktionen zurück, die pi-ai nicht bieten kann: multimodale Echtzeitsendung (Bild/Audio/Video/PDF) mit hartherzigem Modalitätsgate, eine `llmOpenaiCompletions`-Prompt-Quell-Schnittstelle für dsh-promptbook-artige Konsumenten, Credentials-Service-Schlüssel und volle rc-dynamische Kompatibilität über `0.1.0-rc.8` – `0.2.0-rc.2`. Die alte `settings.get`-Architektur ist a.D. — die Beurteilung lautet `enabled && providers.includes(route)` (reine manuelle Mitgliedschaft: das Routing-Kontrollkästchen ist die Wahrheit), der Schalter liegt in der eigenen Einstellungssektion dieses Plugins. Vertragsflächen: [AGENTS.md](./AGENTS.md).
 
 **Positionierung**: als Short-Circuit-Backend wiederauflebt, das dsh-thinking-levels antreiben kann — mit dem Ziel, die drei gängigen API-Formate je Routen-`api`-Deklaration zu bedienen (OpenAI Chat Completions implementiert; **Anthropic Messages und OpenAI Responses folgen**), primär für Xiaomi-MiMo-Multimodal gebaut: echte Audio-/Video-/PDF-Sendung.
 
@@ -41,20 +41,19 @@ Der Short-Circuit konsumiert den Wasserfall **bevor** der Host Dateiblöcke zu T
 
 ```
 takeover(route) = section.enabled === true
-                  && (section.providers ∪ automatisch erkannt).includes(route)
-automatisch erkannt = Custom-openai-completions-Gateway UND Thinking deklariert
+                  && section.providers.includes(route)
 ```
 
 ```yaml
 # ~/.dsh/profiles/web/cordis.patch.yml (oder Einstellungen → Plugins → dsh-llm-openai-completions)
 llm-openai-completions:
   enabled: true
-  providers:        # optionale manuelle Liste zusätzlich zur automatisch erkannten Menge
+  providers:        # die Übernahmeliste — die einzige Wahrheit (siehe unten)
     - local-35b
 ```
 
-- Schalter und manuelle Liste liegen in der **eigenen Einstellungssektion dieses Plugins** (`.volatile()` — zur Laufzeit änderbar, hostgeneriertes Formular).
-- **dsh-thinking-levels's `takeover`-Schalter ist das Steuerungsschicht-Master**: Beim Umschalten spiegelt er `{enabled}` in diese Sektion; die manuelle `providers`-Liste wird nie berührt.
+- Schalter und Übernahmeliste liegen in der **eigenen Einstellungssektion dieses Plugins** (`.volatile()` — zur Laufzeit änderbar, hostgeneriertes Formular).
+- **dsh-thinking-levels treibt beide Felder**: Sein `takeover`-Schalter spiegelt `{enabled}` in diese Sektion, und das Routing-Kontrollkästchen im Modellpanel schreibt `providers` direkt — das Kontrollkästchen ist die Wahrheit; Dispatch, `listHostedModels` und die Steuerungsschicht-Gating lesen dieselbe Menge.
 - Abschalten (oder Deinstallieren) fällt unverändert auf pi-ai zurück — keine Adapter-Registrierung zum Rückgängigmachen.
 - Deine llm-pi-ai-Konfiguration bleibt, wie sie ist (eine geteilte Konfiguration; dieser Adapter liest nur — Feldtabelle: [docs/settings-spec.md](docs/settings-spec.md), Übernahmevertrag: [docs/takeover-spec.md](docs/takeover-spec.md)):
 

@@ -42,7 +42,7 @@ llm-openai-completions:
     - local-35b
 ```
 
-Las rutas se auto-identifican (gateway openai-completions personalizado Y thinking declarado); la lista manual añade lo que los criterios automáticos pasen por alto. El interruptor `takeover` de dsh-thinking-levels se refleja en `enabled` al accionarlo.
+Las rutas entran en la lista de toma de control mediante la casilla por ruta del panel de modelos de dsh-thinking-levels (escribe `providers` directamente) o editando la lista a mano; el interruptor `takeover` allí se refleja en `enabled` al accionarlo.
 
 ## 4. Solución de problemas
 

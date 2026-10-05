@@ -1,6 +1,6 @@
 # dsh-llm-openai-completions
 
-> ✅ **Revived as 0.3.0 (2026-10-05).** The transport takeover is back with real features pi-ai cannot offer: multimodal true-send (image/audio/video/PDF) with a modality hard gate, an `llmOpenaiCompletions` prompt-source seam for dsh-promptbook-class consumers, credentials-service keys, and full-rc dynamic compatibility across `0.1.0-rc.8` – `0.2.0-rc.2`. The old `settings.get`-era architecture is gone — the judgment is `enabled && (manual ∪ auto-identified)`, and the switch lives in this plugin's own settings section. Contract surfaces: [AGENTS.md](./AGENTS.md).
+> ✅ **Revived as 0.3.0 (2026-10-05).** The transport takeover is back with real features pi-ai cannot offer: multimodal true-send (image/audio/video/PDF) with a modality hard gate, an `llmOpenaiCompletions` prompt-source seam for dsh-promptbook-class consumers, credentials-service keys, and full-rc dynamic compatibility across `0.1.0-rc.8` – `0.2.0-rc.2`. The old `settings.get`-era architecture is gone — the judgment is `enabled && providers.includes(route)` (pure manual membership: the per-route checkbox is the truth), and the switch lives in this plugin's own settings section. Contract surfaces: [AGENTS.md](./AGENTS.md).
 
 **Positioning**: revived as a short-circuit backend that dsh-thinking-levels can drive — targeting the three mainstream API formats per route `api` declaration (OpenAI Chat Completions implemented; **Anthropic Messages and OpenAI Responses are next**), built primarily for Xiaomi MiMo multimodal: true audio/video/PDF send.
 
@@ -41,20 +41,19 @@ The short-circuit consumes the waterfall **before** the host projects file block
 
 ```
 takeover(route) = section.enabled === true
-                  && (section.providers ∪ auto-identified).includes(route)
-auto-identified = custom openai-completions gateway AND thinking declared
+                  && section.providers.includes(route)
 ```
 
 ```yaml
 # ~/.dsh/profiles/web/cordis.patch.yml (or Settings → Plugins → dsh-llm-openai-completions)
 llm-openai-completions:
   enabled: true
-  providers:        # optional manual list on top of the auto-identified set
+  providers:        # the takeover list — the single truth (see below)
     - local-35b
 ```
 
-- The switch and the manual list live in **this plugin's own settings section** (`.volatile()` — runtime-editable, host-generated form).
-- **dsh-thinking-levels' `takeover` switch is the control-layer master**: flipping it mirrors `{enabled}` into this section; the manual `providers` list is never touched by the mirror.
+- The switch and the takeover list live in **this plugin's own settings section** (`.volatile()` — runtime-editable, host-generated form).
+- **dsh-thinking-levels drives both fields**: its `takeover` switch mirrors `{enabled}` into this section, and its model panel's per-route takeover checkbox writes `providers` directly — the checkbox is the truth, so dispatch, `listHostedModels`, and the control layer's gating all read one set.
 - Disabling the switch (or unmounting the plugin) falls through to pi-ai unchanged — no adapter registration to unwind.
 - Your llm-pi-ai config stays as-is (one shared config; this adapter only reads it — full field table: [docs/settings-spec.md](docs/settings-spec.md), takeover contract: [docs/takeover-spec.md](docs/takeover-spec.md)):
 

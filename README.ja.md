@@ -1,6 +1,6 @@
 # dsh-llm-openai-completions
 
-> ✅ **0.3.0 で復活（2026-10-05）。** トランスポートテイクオーバーが、pi-ai には無い本当の機能と共に帰ってきました：マルチモーダル真送信（画像/音声/動画/PDF）＋モーダル硬性ゲート、dsh-promptbook 系コンシューマ向けの `llmOpenaiCompletions` プロンプトソース口、クレデンシャルサービス鍵、そして `0.1.0-rc.8` – `0.2.0-rc.2` の全 rc 動的互換。旧 `settings.get` 時代のアーキテクチャは退役——判定は `enabled && (手動 ∪ 自動識別)` で、スイッチは本プラグイン自身の設定セクションにあります。契約面：[AGENTS.md](./AGENTS.md)。
+> ✅ **0.3.0 で復活（2026-10-05）。** トランスポートテイクオーバーが、pi-ai には無い本当の機能と共に帰ってきました：マルチモーダル真送信（画像/音声/動画/PDF）＋モーダル硬性ゲート、dsh-promptbook 系コンシューマ向けの `llmOpenaiCompletions` プロンプトソース口、クレデンシャルサービス鍵、そして `0.1.0-rc.8` – `0.2.0-rc.2` の全 rc 動的互換。旧 `settings.get` 時代のアーキテクチャは退役——判定は `enabled && providers.includes(route)`（純手動メンバーシップ：ルート毎チェックボックスが真実）で、スイッチは本プラグイン自身の設定セクションにあります。契約面：[AGENTS.md](./AGENTS.md)。
 
 **ポジショニング**：dsh-thinking-levels が結合可能なショートサーキットバックエンドとして復活——ルート毎の `api` 宣言に応じた三大主流 API フォーマット対応を目標に（OpenAI Chat Completions は実装済み；**Anthropic Messages と OpenAI Responses は次段**）、シャオミ MiMo マルチモーダルのために構築：音声・動画・PDF の真送信。
 
@@ -41,20 +41,19 @@
 
 ```
 takeover(route) = section.enabled === true
-                  && (section.providers ∪ 自動識別).includes(route)
-自動識別 = カスタム openai-completions ゲートウェイ かつ thinking 宣言あり
+                  && section.providers.includes(route)
 ```
 
 ```yaml
 # ~/.dsh/profiles/web/cordis.patch.yml（または 設定 → プラグイン → dsh-llm-openai-completions）
 llm-openai-completions:
   enabled: true
-  providers:        # 手動リスト、自動識別セットに重ねる（任意）
+  providers:        # テイクオーバーリスト——唯一の真実（下記参照）
     - local-35b
 ```
 
-- スイッチと手動リストは本プラグイン**自身の設定セクション**にあります（`.volatile()`——実行時変更可、ホスト生成フォーム）。
-- **dsh-thinking-levels の `takeover` スイッチがコントロール層のマスター**：反転すると `{enabled}` を本セクションへミラー書き込みし、手動 `providers` リストには決して触れません。
+- スイッチとテイクオーバーリストは本プラグイン**自身の設定セクション**にあります（`.volatile()`——実行時変更可、ホスト生成フォーム）。
+- **dsh-thinking-levels が両フィールドを駆動**：その `takeover` スイッチは `{enabled}` を本セクションへミラーし、モデルパネルのルート毎テイクオーバーチェックボックスが `providers` を直接書き込みます——チェックボックスが真実であり、dispatch・`listHostedModels`・コントロール層ゲーティングは同じ集合を読みます。
 - スイッチ解除（またはプラグイン取り外し）でそのまま pi-ai へフォールスルー——巻き戻すべきアダプター登録はありません。
 - llm-pi-ai の設定はそのまま（1 つの共有設定；本アダプターは読むだけ——フィールド全表：[docs/settings-spec.md](docs/settings-spec.md)、テイクオーバー契約：[docs/takeover-spec.md](docs/takeover-spec.md)）：
 

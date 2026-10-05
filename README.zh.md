@@ -1,6 +1,6 @@
 # dsh-llm-openai-completions
 
-> ✅ **0.3.0 复活（2026-10-05）。** 传输接管回归，带着 pi-ai 给不了的真功能：多模态真发（图片/音频/视频/PDF）+ 模态硬门禁、面向 dsh-promptbook 类消费方的 `llmOpenaiCompletions` 提示词源口子、凭据服务密钥，以及 `0.1.0-rc.8` – `0.2.0-rc.2` 全 rc 动态兼容。旧的 `settings.get` 世代架构已退役——判定为 `enabled && (手工 ∪ 自动识别)`，开关就在本插件自己的设置区。契约面：[AGENTS.md](./AGENTS.md)。
+> ✅ **0.3.0 复活（2026-10-05）。** 传输接管回归，带着 pi-ai 给不了的真功能：多模态真发（图片/音频/视频/PDF）+ 模态硬门禁、面向 dsh-promptbook 类消费方的 `llmOpenaiCompletions` 提示词源口子、凭据服务密钥，以及 `0.1.0-rc.8` – `0.2.0-rc.2` 全 rc 动态兼容。旧的 `settings.get` 世代架构已退役——判定为 `enabled && providers.includes(route)`（纯手工名单：逐路由勾选框就是真相），开关就在本插件自己的设置区。契约面：[AGENTS.md](./AGENTS.md)。
 
 **定位**：作为 dsh-thinking-levels 可挂接的短路后端复活——按路由 `api` 声明支持三种主流 API 格式（OpenAI Chat Completions 已实装；**Anthropic Messages 与 OpenAI Responses 为下一站**），主要为小米 MiMo 多模态打造：音视频与 PDF 真发。
 
@@ -41,20 +41,19 @@
 
 ```
 takeover(route) = section.enabled === true
-                  && (section.providers ∪ 自动识别).includes(route)
-自动识别 = 自定义 openai-completions 网关 且 声明了思考
+                  && section.providers.includes(route)
 ```
 
 ```yaml
 # ~/.dsh/profiles/web/cordis.patch.yml（或 设置 → 插件 → dsh-llm-openai-completions）
 llm-openai-completions:
   enabled: true
-  providers:        # 手工名单，叠加在自动识别集之上（可选）
+  providers:        # 接管名单——唯一真相（见下）
     - local-35b
 ```
 
-- 开关与手工名单在本插件**自己的设置区**（`.volatile()`——运行时可改，宿主自动生成表单）。
-- **dsh-thinking-levels 的 `takeover` 开关是控制层 master**：翻转时把 `{enabled}` 镜像写进本 section；镜像永不碰手工 `providers` 名单。
+- 开关与接管名单在本插件**自己的设置区**（`.volatile()`——运行时可改，宿主自动生成表单）。
+- **dsh-thinking-levels 驱动两个字段**：它的 `takeover` 开关把 `{enabled}` 镜像写进本 section，其模型面板的逐路由接管勾选框直接写 `providers`——勾选框就是真相，dispatch、`listHostedModels` 与控制层门控读的是同一份集合。
 - 关掉开关（或卸载插件）即原样回落 pi-ai——没有需要回退的 adapter 注册。
 - 你的 llm-pi-ai 配置原样保留（一份共享配置；本适配器只读——字段全表：[docs/settings-spec.md](docs/settings-spec.md)，接管契约：[docs/takeover-spec.md](docs/takeover-spec.md)）：
 

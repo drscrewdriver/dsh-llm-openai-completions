@@ -42,7 +42,7 @@ llm-openai-completions:
     - local-35b
 ```
 
-Routes are auto-identified (custom openai-completions gateway AND thinking declared); the manual list adds anything the auto criteria miss. The `takeover` switch in dsh-thinking-levels mirrors into `enabled` when flipped.
+Routes enter the takeover list through the per-route checkbox in dsh-thinking-levels' model panel (it writes `providers` directly) or by hand-editing the list; the `takeover` switch there mirrors into `enabled` when flipped.
 
 ## 4. Troubleshooting
 

@@ -1,6 +1,6 @@
 # dsh-llm-openai-completions
 
-> ✅ **0.3.0 부활(2026-10-05).** 트랜스포트 테이크오버가 pi-ai로는 불가능한 실기능을 갖추어 돌아왔습니다: 멀티모달 참전송(이미지/오디오/비디오/PDF)＋모달리티 하드 게이트, dsh-promptbook 계열 컨슈머용 `llmOpenaiCompletions` 프롬프트 소스 통로, 크리덴셜 서비스 키, 그리고 `0.1.0-rc.8` – `0.2.0-rc.2` 전 rc 동적 호환. 구 `settings.get` 시대 아키텍처는 은퇴——판정은 `enabled && (수동 ∪ 자동식별)`이며 스위치는 본 플러그인 자신의 설정 섹션에 있습니다. 계약 면: [AGENTS.md](./AGENTS.md).
+> ✅ **0.3.0 부활(2026-10-05).** 트랜스포트 테이크오버가 pi-ai로는 불가능한 실기능을 갖추어 돌아왔습니다: 멀티모달 참전송(이미지/오디오/비디오/PDF)＋모달리티 하드 게이트, dsh-promptbook 계열 컨슈머용 `llmOpenaiCompletions` 프롬프트 소스 통로, 크리덴셜 서비스 키, 그리고 `0.1.0-rc.8` – `0.2.0-rc.2` 전 rc 동적 호환. 구 `settings.get` 시대 아키텍처는 은퇴——판정은 `enabled && providers.includes(route)`(순수 수동 멤버십: 라우트별 체크박스가 진실)이며 스위치는 본 플러그인 자신의 설정 섹션에 있습니다. 계약 면: [AGENTS.md](./AGENTS.md).
 
 **포지셔닝**: dsh-thinking-levels가 결합 가능한 쇼트서킷 백엔드로 부활——라우트별 `api` 선언에 따라 세 가지 주류 API 포맷을 지원하는 것이 목표입니다(OpenAI Chat Completions는 구현됨; **Anthropic Messages와 OpenAI Responses는 다음 단계**——샤오미 MiMo 멀티모달을 위한 오디오/비디오/PDF 참전송과 함께).
 
@@ -41,20 +41,19 @@
 
 ```
 takeover(route) = section.enabled === true
-                  && (section.providers ∪ 자동식별).includes(route)
-자동식별 = 커스텀 openai-completions 게이트웨이 그리고 thinking 선언
+                  && section.providers.includes(route)
 ```
 
 ```yaml
 # ~/.dsh/profiles/web/cordis.patch.yml (또는 설정 → 플러그인 → dsh-llm-openai-completions)
 llm-openai-completions:
   enabled: true
-  providers:        # 수동 목록, 자동식별 집합 위에 덧대기(선택)
+  providers:        # 테이크오버 목록——유일한 진실(아래 참조)
     - local-35b
 ```
 
-- 스위치와 수동 목록은 본 플러그인 **자신의 설정 섹션**에 있습니다(`.volatile()`——런타임 변경 가능, 호스트 생성 폼).
-- **dsh-thinking-levels의 `takeover` 스위치가 컨트롤 계층 마스터**: 반전 시 `{enabled}`를 본 섹션에 미러 기록하며, 수동 `providers` 목록은 결코 건드리지 않습니다.
+- 스위치와 테이크오버 목록은 본 플러그인 **자신의 설정 섹션**에 있습니다(`.volatile()`——런타임 변경 가능, 호스트 생성 폼).
+- **dsh-thinking-levels가 두 필드를 구동**: 그 `takeover` 스위치는 `{enabled}`를 본 섹션에 미러하고, 모델 패널의 라우트별 테이크오버 체크박스가 `providers`를 직접 기록합니다——체크박스가 진실이며, dispatch·`listHostedModels`·컨트롤 계층 게이팅은 같은 집합을 읽습니다.
 - 스위치 해제(또는 플러그인 제거) 시 그대로 pi-ai로 폴스루——되감을 어댑터 등록이 없습니다.
 - llm-pi-ai 설정은 그대로(1개의 공유 설정; 본 어댑터는 읽기만——필드 전표: [docs/settings-spec.md](docs/settings-spec.md), 테이크오버 계약: [docs/takeover-spec.md](docs/takeover-spec.md)):
 

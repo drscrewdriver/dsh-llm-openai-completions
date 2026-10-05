@@ -42,7 +42,7 @@ llm-openai-completions:
     - local-35b
 ```
 
-ルートは自動識別されます（カスタム openai-completions ゲートウェイ かつ thinking 宣言）；手動リストは自動基準が取りこぼすルートを補います。dsh-thinking-levels の `takeover` スイッチは反転時に `enabled` へミラーされます。
+ルートは dsh-thinking-levels のモデルパネルのルート毎チェックボックスからテイクオーバーリストに入ります（`providers` を直接書き込み）、またはリストを手動編集；そこの `takeover` スイッチは反転時に `enabled` へミラーされます。
 
 ## 4. トラブルシューティング
 

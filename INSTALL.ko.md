@@ -42,7 +42,7 @@ llm-openai-completions:
     - local-35b
 ```
 
-라우트는 자동식별됩니다(커스텀 openai-completions 게이트웨이 그리고 thinking 선언); 수동 목록은 자동 기준이 놓치는 라우트를 보충합니다. dsh-thinking-levels의 `takeover` 스위치는 반전 시 `enabled`로 미러됩니다.
+라우트는 dsh-thinking-levels 모델 패널의 라우트별 체크박스를 통해 테이크오버 목록에 들어갑니다(`providers` 직접 기록), 또는 목록을 수동 편집; 거기의 `takeover` 스위치는 반전 시 `enabled`로 미러됩니다.
 
 ## 4. 문제 해결
 

@@ -11,8 +11,8 @@ service exists only while this plugin is composed).
 
 ### `listHostedModels(): Array<{ provider, id, name? }>`
 
-Enumerates the models of the CURRENTLY taken-over routes (the takeover judgment's
-union, from the live llm-pi-ai section). Empty while the `enabled` switch is off —
+Enumerates the models of the CURRENTLY taken-over routes (the manual `providers`
+list, from the live section). Empty while the `enabled` switch is off —
 honest by construction, because dispatch only rewrites prompts on taken-over routes.
 **A consumer GUI's model list must use this source only** — non-hosted models get no
 rewrite, so offering them a configuration entry would be governance decay.
@@ -49,23 +49,27 @@ Registers the prompt source; returns its disposer. `source` shape:
 
 ```
 takeover(route) = section.enabled === true
-                  && (section.providers ∪ autoIdentified).includes(route)
-autoIdentified  = custom openai-completions gateway AND thinking declared
-                  (reasoningEfforts table) — adapter/identify.ts
+                  && section.providers.includes(route)
 ```
+Pure manual membership — the per-route takeover checkbox in dsh-thinking-levels'
+model panel writes `providers` directly, so dispatch, `listHostedModels`, and the
+control layer's gating read one set (the checkbox is the truth). The identification
+functions (`isCustomOpenAiGateway` / `declaresThinking`, same-origin port of
+dsh-thinking-levels') remain exported as pure utilities with tests locking their
+semantics, but no longer feed the judgment.
 
-- The `enabled` flag lives in THIS plugin's settings section (`.volatile()` — the host
-  generates the form). dsh-thinking-levels' `takeover` switch (its own settings UI) is
-  the control-layer MASTER: on flip it mirrors `{enabled}` into this section
-  (`takeoverPatch` — identity-gated, never touches the manual providers list). The
-  judgment itself is computed here and read back by thinking-levels
-  (`takeoverRoutesOf`) for its effort-injection gating and toggle folding. Direct edits
-  to this section survive until the master switch is actually flipped again.
+- The `enabled` flag and the `providers` list live in THIS plugin's settings section
+  (`.volatile()` — the host generates the form). dsh-thinking-levels drives both: its
+  `takeover` switch mirrors `{enabled}` (identity-gated), and its model panel's
+  per-route takeover checkbox writes `providers` directly. The judgment is computed
+  here and read back by thinking-levels (`takeoverRoutesOf`) for its effort-injection
+  gating and toggle folding. Direct edits to this section are the same truth the
+  checkbox reads — no second source exists.
 - The data plane (baseURL / models / reasoningEfforts / compat / input) is and stays in
   the `llm-pi-ai` namespace, read per request through `settings.describe()`. No plugin
   may copy it — llm-pi-ai is the single source of truth.
-- Identification functions (`isCustomOpenAiGateway` / `declaresThinking`) are a
-  same-origin port of dsh-thinking-levels' `takeover-sync.ts`; both repos' unit tests
+- Identification utilities (`isCustomOpenAiGateway` / `declaresThinking`) share origin
+  with dsh-thinking-levels' `takeover-sync.ts`; both repos' unit tests
   lock the semantics. Change them in sync.
 
 ## 3. Dispatch behavior

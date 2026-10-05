@@ -42,7 +42,7 @@ llm-openai-completions:
     - local-35b
 ```
 
-Routen werden automatisch erkannt (Custom-openai-completions-Gateway UND Thinking deklariert); die manuelle Liste ergänzt, was die automatischen Kriterien verpassen. Der `takeover`-Schalter in dsh-thinking-levels spiegelt beim Umschalten nach `enabled`.
+Routen kommen über das Routing-Kontrollkästchen im Modellpanel von dsh-thinking-levels auf die Übernahmeliste (es schreibt `providers` direkt) oder durch manuelles Bearbeiten der Liste; der `takeover`-Schalter dort spiegelt beim Umschalten nach `enabled`.
 
 ## 4. Fehlerbehebung
 

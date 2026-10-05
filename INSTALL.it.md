@@ -42,7 +42,7 @@ llm-openai-completions:
     - local-35b
 ```
 
-Le rotte sono auto-identificate (gateway openai-completions personalizzato E thinking dichiarato); l'elenco manuale aggiunge ciò che i criteri automatici tralasciano. L'interruttore `takeover` di dsh-thinking-levels si specchia in `enabled` quando ribaltato.
+Le rotte entrano nell'elenco di presa in carico tramite la casella per rotta del pannello modelli di dsh-thinking-levels (scrive `providers` direttamente) o modificando l'elenco a mano; l'interruttore `takeover` lì si specchia in `enabled` quando ribaltato.
 
 ## 4. Risoluzione dei problemi
 
