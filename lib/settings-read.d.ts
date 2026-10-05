@@ -1,19 +1,28 @@
 /**
- * Cross-namespace reads over the DSH 0.1.7+ settings service.
+ * Cross-namespace reads over the settings service, version-conditional across
+ * the 15-rc matrix.
  *
- * `SettingsForms` (the service registered as `settings`) has no `get(ns)`:
- * the read channel is `describe()`, which returns every active profile
- * entry's live Config value with its schema projection and revision. Values
- * are schema-projected by the host, so only fields the owning plugin's
- * Config schema declares survive the round trip — which is why this plugin's
- * data plane is read from the `llm-pi-ai` namespace (whose schema declares
- * everything this adapter consumes) rather than from free-form documents.
+ * Two host generations, two read channels:
+ * - 0.1.7+ (`SettingsForms`, registered as `settings`): `describe()` returns
+ *   every active profile entry's live Config value keyed by entry id; values
+ *   are schema-projected (only fields the owning plugin's Config declares
+ *   survive) and each descriptor carries a `revision` write fence.
+ * - ≤ 0.1.6 (imperative settings): `get(ns)` returns the section directly.
+ *
+ * `readSection` tries `describe()` first and falls back to `get(ns)` — the
+ * `settings?.get?.()` soft reads this architecture once relied on were dead
+ * on every 0.1.7+ host, which is why the fallback is shape-detected, not
+ * version-guessed.
  * @module dsh-llm-openai-completions/settings-read
  */
 import type { Context } from '@deepseek-ai/cordis';
-/** Minimal face of the settings service this module reads. */
-export interface SettingsServiceLike {
+/** Minimal 0.1.7+ settings face. */
+export interface SettingsFormsLike {
     describe?: () => SettingsDescriptorLike[];
+}
+/** Minimal ≤ 0.1.6 settings face. */
+export interface SettingsLegacyLike {
+    get?: (ns: string) => unknown;
 }
 /** One active profile entry as `describe()` reports it (minimal face). */
 export interface SettingsDescriptorLike {
@@ -26,11 +35,9 @@ export interface SectionReadout<T = unknown> {
     value: T;
     revision: number;
 }
-/** One `describe()` pass over the live settings, or `undefined` when the service is absent. */
-export declare function describeSettings(ctx: Context): SettingsDescriptorLike[] | undefined;
 /**
  * Read one namespace's live section. `undefined` when the settings service is
- * absent or the namespace is not an active profile entry (owning plugin not
+ * absent or the namespace is not an active entry (owning plugin not
  * installed / not composed).
  */
 export declare function readSection<T = unknown>(ctx: Context, ns: string): SectionReadout<T> | undefined;

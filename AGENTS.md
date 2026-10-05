@@ -100,11 +100,13 @@ autoIdentified  = custom openai-completions gateway AND thinking declared
   system prompt: have the model self-check a tool prefix and answer by the result).
   The trajectory panel only verifies assembly-layer artifacts.
 - Peer contract: `@deepseek-ai/dsh-*` packages are runtime-provided (never
-  `dependencies`); the enum covers every existing rc of the supported lines
-  (`0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2`), written identically at all
-  three gate points (package.json engines, dsh.plugin.json engines, peerDependencies) —
-  a cross-line RANGE is a false claim (semver prerelease matching only hits same-tuple
-  comparators). Widen only with a host-matrix run.
+  `dependencies`); the enum covers the FULL 15-rc matrix (0.1.0-rc.2 … 0.2.0-rc.2, see
+  scripts/audit-host-faces.mjs), written identically at all three gate points
+  (package.json engines, dsh.plugin.json engines, peerDependencies) — a cross-line
+  RANGE is a false claim (semver prerelease matching only hits same-tuple comparators).
+  Version-conditionality lives in the code: shape-detected settings faces, the
+  ToolCallId/CallId shim, feature-detected attachment reads. Widen the enum only with
+  the audit + a host-matrix run.
 - `settings.get(ns)` does not exist on any supported host — reads go through
   `describe()` (`src/settings-read.ts`); writes through `settings.update(ns, patch)`
   with schema validation at the write site.

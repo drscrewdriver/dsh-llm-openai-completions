@@ -38,8 +38,12 @@
 - **Credentials service**: `apiKeyEnv` resolves through `credentials.resolve(credentialRef(…))`
   with launch-environment fallback and a loud `MISSING_CREDENTIAL` — no more bare
   `process.env`.
-- **Host lines**: full rc enum `0.1.7-rc.1 || 0.1.7-rc.2 || 0.2.0-rc.1 || 0.2.0-rc.2` at all three gate
-  points (engines, dsh.plugin.json, peers) — cross-line ranges are a semver false claim; `ToolCallId` import fixed for the 0.2.0 line; serializer
+- **Host lines**: FULL 15-rc enum (0.1.0-rc.2 … 0.2.0-rc.2) at all three gate points (engines,
+  dsh.plugin.json, peers) — cross-line ranges are a semver false claim. Version
+  conditionality in code: settings dual read channel (describe() on 0.1.7+, get(ns)
+  before), legacy own-section registration (≤ 0.1.6, so the namespace stays visible to
+  dsh-thinking-levels), ToolCallId/CallId import shim (0.1.0/0.1.1 lines),
+  credentials → launch-environment → process.env resolution chain; `ToolCallId` import fixed for the 0.2.0 line; serializer
   handles both message shapes (0.1.x user-embedded tool results and 0.2.0 `role: 'tool'`
   messages).
 

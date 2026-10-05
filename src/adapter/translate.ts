@@ -11,7 +11,8 @@
  * @module dsh-thinking-levels/adapter/translate
  */
 
-import { ToolCallId, EMPTY_RESPONSE_CODE } from '@deepseek-ai/dsh-llm'
+import { EMPTY_RESPONSE_CODE } from '@deepseek-ai/dsh-llm'
+import { ToolCallId } from './tool-call-id.ts'
 import type { ContentBlock, FinishReason, StreamChunk, TokenUsage } from '@deepseek-ai/dsh-llm'
 import { DONE } from './sse.ts'
 

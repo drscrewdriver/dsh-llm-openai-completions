@@ -81,8 +81,43 @@ function readLive<T>(value: T | Volatile<T> | undefined, fallback: T): T {
 }
 
 /**
- * Resolve the route's API key: credentials service first, launch environment
- * as the fallback. Both empty is a loud MISSING_CREDENTIAL — a keyless request
+ * Legacy (≤ 0.1.6) settings face: install a registered section so the switch
+ * and manual list are runtime-editable and the namespace is VISIBLE to other
+ * plugins — dsh-thinking-levels reads `llm-openai-completions` through
+ * `settings.get(ns)` on these hosts, which resolves only registered
+ * namespaces. On 0.1.7+ the composition entry IS the section (declarative,
+ * `describe()`-visible) and `settings.register` no longer exists, so the
+ * install is a no-op there — the discriminator is the service's own shape
+ * (`register` present, `describe` absent), never a version guess.
+ */
+let legacyRead: (() => Config) | undefined
+
+function installLegacySection(ctx: Context, config: Config): void {
+  ;(ctx as unknown as {
+    inject(deps: string[], fn: (sctx: { settings: unknown; effect(cleanup: () => (() => void) | void, label?: string): void }) => void): void
+  }).inject(['settings'], (sctx) => {
+    const settings = sctx.settings as {
+      register?: (ns: string, schema: unknown, options?: { base?: unknown }) => {
+        get(): unknown
+        watch?(callback: () => void): () => void
+      }
+      describe?: unknown
+    }
+    if (typeof settings?.register !== 'function' || typeof settings.describe === 'function') return
+    const scope = settings.register(SETTINGS_NAMESPACE, Config, { base: config })
+    legacyRead = () => scope.get() as Config
+    sctx.effect(() => () => {
+      legacyRead = undefined
+    })
+    scope.watch?.(() => {})
+  })
+}
+
+/**
+ * Resolve the route's API key, version- and environment-conditional: the
+ * credentials service first (the web Models page writes there), then the
+ * launch environment (exists on every line), then the raw process
+ * environment. All empty is a loud MISSING_CREDENTIAL — a keyless request
  * would only produce an opaque gateway 401.
  */
 async function resolveApiKey(ctx: Context, apiKeyEnv: string | undefined): Promise<string | undefined> {
@@ -92,10 +127,12 @@ async function resolveApiKey(ctx: Context, apiKeyEnv: string | undefined): Promi
   if (credentials?.resolve !== undefined) {
     const resolved = await credentials.resolve(credentialRef(apiKeyEnv))
     if (resolved !== undefined) value = resolved.value
-  } else {
+  }
+  if (value === undefined || value.length === 0) {
     const ambient = launchEnvironmentOf(ctx).get(apiKeyEnv)
     if (ambient !== undefined && ambient.value.length > 0) value = ambient.value
   }
+  if (value === undefined || value.length === 0) value = process.env[apiKeyEnv]
   if (value === undefined || value.length === 0) {
     throw new LlmError(
       `llm-openai-completions: no credential for the route's "${apiKeyEnv}" reference — store it through the credentials service (the web Models page writes it) or export it in the launching environment`,
@@ -111,10 +148,17 @@ async function resolveApiKey(ctx: Context, apiKeyEnv: string | undefined): Promi
  * @param config - composition entry (volatile fields arrive as live refs).
  */
 export function apply(ctx: Context, config: Config = DEFAULT_CONFIG): void {
-  const current = (): { enabled: boolean; providers: string[] } => ({
-    enabled: readLive(config.enabled, false),
-    providers: readLive(config.providers, []),
-  })
+  installLegacySection(ctx, config)
+  // Live configuration: the legacy registered section (≤ 0.1.6, user edits
+  // layered over the entry base) wins when installed; otherwise the 0.1.7+
+  // composition entry with its volatile refs.
+  const current = (): { enabled: boolean; providers: string[] } => {
+    const base = legacyRead?.() ?? config
+    return {
+      enabled: readLive(base.enabled, false),
+      providers: readLive(base.providers, []),
+    }
+  }
 
   const promptSources = new PromptSourceRegistry()
   const adapter = new OpenAiCompletionsAdapter(
