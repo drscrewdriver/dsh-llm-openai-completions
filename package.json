@@ -41,7 +41,9 @@
     "README.it.md",
     "INSTALL.it.md",
     "README.ru.md",
-    "INSTALL.ru.md"
+    "INSTALL.ru.md",
+    "INSTALL.ja.md",
+    "INSTALL.ko.md"
   ],
   "engines": {
     "node": ">=22.19.0 || >=24.0.0",
