@@ -10,6 +10,8 @@
  * edit applies to the next request without a restart.
  * @module dsh-llm-openai-completions/adapter/config
  */
+import type { FaceId } from './face.ts'
+import { faceOf } from './face.ts'
 import type { PiAiSection } from './identify.ts'
 
 /** The modalities a model's `input` declaration may name. */
@@ -25,6 +27,8 @@ export interface ModelCapability {
   reasoningEfforts: Record<string, unknown>
   /** The declared `input` modalities (route `defaultInput` inherited, text floor). */
   input: string[]
+  /** The declared per-model output ceiling (max_tokens on faces that require it). */
+  maxTokens?: number
   /** The model accepts image input (its `input` lists image). */
   vision: boolean
 }
@@ -35,6 +39,8 @@ export interface ProviderInfo {
   baseURL: string
   /** Credential env reference, when configured. */
   apiKeyEnv?: string
+  /** The wire face this route speaks (from its `api` declaration). */
+  face: FaceId
   /** Capabilities keyed by model id. */
   models: Record<string, ModelCapability>
 }
@@ -63,6 +69,11 @@ export function providerResolverOf(section: PiAiSection | undefined): ProviderRe
       : undefined
     if (baseURL === undefined) return undefined
 
+    const face = faceOf(profile)
+    const routeDefaultMaxTokens = typeof profile.defaultMaxTokens === 'number' && profile.defaultMaxTokens > 0
+      ? profile.defaultMaxTokens
+      : undefined
+
     const models: Record<string, ModelCapability> = {}
     // Route-wide capability defaults, then per-model fields override them —
     // the same fallback chain llm-pi-ai resolves (`defaultInput`, route `compat`).
@@ -89,6 +100,11 @@ export function providerResolverOf(section: PiAiSection | undefined): ProviderRe
           ? (model['input'] as unknown[]).filter((m): m is string => typeof m === 'string')
           : routeInput
         const input = declared ?? ['text']
+        // Output ceiling for faces with a required max_tokens (anthropic):
+        // the model row's declaration, else the route's defaultMaxTokens.
+        const maxTokens = typeof model['maxTokens'] === 'number' && model['maxTokens'] > 0
+          ? model['maxTokens']
+          : routeDefaultMaxTokens
         models[id] = {
           ...typeof compat['thinkingFormat'] === 'string' ? { thinkingFormat: compat['thinkingFormat'] } : {},
           // Only the explicit compat flag marks an effort-capable model. A bare
@@ -98,6 +114,7 @@ export function providerResolverOf(section: PiAiSection | undefined): ProviderRe
           supportsReasoningEffort: compat['supportsReasoningEffort'] === true,
           reasoningEfforts: efforts,
           input,
+          ...(maxTokens !== undefined ? { maxTokens } : {}),
           vision: input.includes('image'),
         }
       }
@@ -105,6 +122,7 @@ export function providerResolverOf(section: PiAiSection | undefined): ProviderRe
 
     return {
       baseURL,
+      face,
       ...typeof profile.apiKeyEnv === 'string' && profile.apiKeyEnv.length > 0
         ? { apiKeyEnv: profile.apiKeyEnv }
         : {},

@@ -19,6 +19,8 @@ import { LlmError, attributionHeaders } from '@deepseek-ai/dsh-llm'
 import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
 import { serializeRequest, enforceModalities, mediaTypeFromName } from './serialize.ts'
 import type { ImageSource, MediaMap } from './serialize.ts'
+import { serializeAnthropic, translateAnthropic } from './anthropic.ts'
+import { rootFor } from './face.ts'
 import { parseSse } from './sse.ts'
 import { translate } from './translate.ts'
 import type { ProviderResolver } from './config.ts'
@@ -138,7 +140,7 @@ export class OpenAiCompletionsAdapter {
     const capability = provider.models[input.model] ?? UNKNOWN_CAPABILITY
     // Modality gate first: an undeclared attachment is refused before any
     // bytes are read or anything is sent (silent loss becomes a loud refusal).
-    enforceModalities(input, capability)
+    enforceModalities(input, capability, provider.face)
     // Prompt source seam: consumers rewrite the system prompt / tool
     // descriptions for taken-over dispatches only (scope guarantee).
     const options = this.promptSources.apply(input, String(input.provider))
@@ -160,18 +162,36 @@ export class OpenAiCompletionsAdapter {
           },
         }
       : undefined
-    const body = await serializeRequest(options, capability, image, media)
     const apiKey = await this.resolveApiKey(options, provider.apiKeyEnv)
-    const headers = {
-      ...apiKey === undefined ? {} : { authorization: `Bearer ${apiKey}` },
+    const baseHeaders = {
       'content-type': 'application/json',
       'accept': 'text/event-stream',
       ...attributionHeaders(),
     }
+    const face = provider.face
+    // Per-face endpoint, auth headers, body, and SSE dialect.
+    const endpoint = face === 'anthropic-messages'
+      ? `${rootFor(provider.baseURL, face)}/messages`
+      : face === 'openai-responses'
+        ? `${rootFor(provider.baseURL, face)}/responses`
+        : `${provider.baseURL}/chat/completions`
+    const headers = face === 'anthropic-messages'
+      ? {
+          ...baseHeaders,
+          ...(apiKey === undefined ? {} : { 'x-api-key': apiKey }),
+          'anthropic-version': '2023-06-01',
+        }
+      : {
+          ...baseHeaders,
+          ...(apiKey === undefined ? {} : { authorization: `Bearer ${apiKey}` }),
+        }
+    const body = face === 'anthropic-messages'
+      ? serializeAnthropic(options, capability, media)
+      : await serializeRequest(options, capability, image, media)
 
     let response: Response
     try {
-      response = await fetch(`${provider.baseURL}/chat/completions`, {
+      response = await fetch(endpoint, {
         method: 'POST',
         headers,
         body: JSON.stringify(body),
@@ -181,14 +201,14 @@ export class OpenAiCompletionsAdapter {
       // The caller distinguishes cancellation (signal.aborted) from transport
       // failure; chaining the cause keeps the full diagnosis at every boundary.
       throw new LlmError(
-        `openai-completions request to ${provider.baseURL} failed`,
+        `${face} request to ${provider.baseURL} failed`,
         'TRANSPORT',
         { cause: error },
       )
     }
 
     if (!response.ok) {
-      let message = `openai-completions error (HTTP ${response.status})`
+      let message = `${face} error (HTTP ${response.status})`
       try {
         const parsed = await response.json() as { error?: { message?: string } }
         if (parsed.error?.message !== undefined) message = parsed.error.message
@@ -199,9 +219,13 @@ export class OpenAiCompletionsAdapter {
       throw new LlmError(message, httpErrorCode(response.status), { status: response.status })
     }
     if (response.body === null) {
-      throw new LlmError('openai-completions returned no response body', 'EMPTY_RESPONSE')
+      throw new LlmError(`${face} returned no response body`, 'EMPTY_RESPONSE')
     }
 
+    if (face === 'anthropic-messages') {
+      yield* translateAnthropic(parseSse(response.body))
+      return
+    }
     yield* translate(parseSse(response.body))
   }
 }

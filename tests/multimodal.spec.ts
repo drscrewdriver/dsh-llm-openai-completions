@@ -44,7 +44,7 @@ describe('mediaTypeFromName', () => {
 describe('enforceModalities — the hard gate', () => {
   it('passes a text-only history regardless of declaration', () => {
     const options = { model: 'm', messages: [userMessage([{ type: 'text', text: 'hi' }])] } as never
-    expect(() => enforceModalities(options, capability())).not.toThrow()
+    expect(() => enforceModalities(options, capability(), 'openai-completions')).not.toThrow()
   })
 
   it('rejects an undeclared video with a message naming the modality', () => {
@@ -52,7 +52,7 @@ describe('enforceModalities — the hard gate', () => {
       model: 'm',
       messages: [userMessage([fileBlock('v1', 'clip.mp4')])],
     } as never
-    expect(() => enforceModalities(options, capability()))
+    expect(() => enforceModalities(options, capability(), 'openai-completions'))
       .toThrow(/does not declare "video" input/)
   })
 
@@ -65,7 +65,7 @@ describe('enforceModalities — the hard gate', () => {
         fileBlock('p1', 'doc.pdf'),
       ])],
     } as never
-    expect(() => enforceModalities(options, capability({ input: ['text', 'video', 'audio', 'pdf'] }))).not.toThrow()
+    expect(() => enforceModalities(options, capability({ input: ['text', 'video', 'audio', 'pdf'] }), 'openai-completions')).not.toThrow()
   })
 
   it('rejects undeclared images too (unified with the vision gate)', () => {
@@ -73,7 +73,7 @@ describe('enforceModalities — the hard gate', () => {
       model: 'm',
       messages: [userMessage([{ type: 'image', attachment: { attachmentId: 'i1', mediaType: 'image/png' } }])],
     } as never
-    expect(() => enforceModalities(options, capability())).toThrow(/does not declare "image" input/)
+    expect(() => enforceModalities(options, capability(), 'openai-completions')).toThrow(/does not declare "image" input/)
   })
 })
 
@@ -164,5 +164,31 @@ describe('session-title one-shots strip media', () => {
       messages: [userMessage([fileBlock('v1', 'clip.mp4')])],
     } as never, capability({ input: ['text', 'video'] }), undefined, new Map())
     expect(request.messages).toEqual([])
+  })
+})
+
+describe('face×modality gate intersection', () => {
+  const audioMessage = () => ({
+    model: 'm',
+    messages: [userMessage([fileBlock('a1', 'note.mp3')])],
+  } as never)
+
+  it('the anthropic face refuses audio even when the model declares it', () => {
+    expect(() => enforceModalities(audioMessage(), capability({ input: ['text', 'audio'] }), 'anthropic-messages'))
+      .toThrow(/anthropic-messages wire face cannot carry "audio" even though the model declares it/)
+  })
+
+  it('the anthropic face refuses video and pdf too', () => {
+    expect(() => enforceModalities({
+      model: 'm', messages: [userMessage([fileBlock('v1', 'clip.mp4')])],
+    } as never, capability({ input: ['text', 'video'] }), 'anthropic-messages')).toThrow(/cannot carry "video"/)
+    expect(() => enforceModalities({
+      model: 'm', messages: [userMessage([fileBlock('p1', 'doc.pdf')])],
+    } as never, capability({ input: ['text', 'pdf'] }), 'anthropic-messages')).toThrow(/cannot carry "PDF document"/)
+  })
+
+  it('undeclared-on-any-face still names the declaration reason first', () => {
+    expect(() => enforceModalities(audioMessage(), capability(), 'openai-completions'))
+      .toThrow(/does not declare "audio" input/)
   })
 })

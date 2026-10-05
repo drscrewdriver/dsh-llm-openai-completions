@@ -26,6 +26,7 @@
 import { LlmError } from '@deepseek-ai/dsh-llm'
 import type { GenerateOptions } from '@deepseek-ai/dsh-llm'
 import type { ModelCapability } from './config.ts'
+import { FACE_MODALITY, type FaceId } from './face.ts'
 
 /**
  * Duck-typed message/block faces spanning both supported host lines: 0.1.x
@@ -148,15 +149,21 @@ export function requiredModality(block: WireableBlock): string | undefined {
 
 /**
  * Modality gate: reject the request when the message history carries a
- * modality the model's `input` declaration does not name. Runs over the FULL
- * history (the first send after a model switch naturally carries it all), so
- * an undeclared attachment is refused loudly instead of silently degraded.
+ * modality the model's `input` declaration does not name, OR one the wire
+ * face cannot honestly carry (FACE_MODALITY intersection — MiMo's anthropic
+ * face silently drops audio/video/PDF, so a declaration alone is not enough).
+ * Runs over the FULL history (the first send after a model switch naturally
+ * carries it all), so an undeclared or unsupportable attachment is refused
+ * loudly instead of silently degraded.
  * @param options - the harness request.
  * @param capability - the target model's capability (its `input` declaration).
- * @throws LlmError naming the first missing modality and the two ways out.
+ * @param face - the wire face the request will travel on.
+ * @throws LlmError naming the first failing modality, the reason, and the ways out.
  */
-export function enforceModalities(options: GenerateOptions, capability: ModelCapability): void {
-  const allowed = capability.input.length > 0 ? capability.input : ['text']
+export function enforceModalities(options: GenerateOptions, capability: ModelCapability, face: FaceId): void {
+  const declared = capability.input.length > 0 ? capability.input : ['text']
+  const faceAllowed = FACE_MODALITY[face]
+  const allowed = declared.filter((modality) => faceAllowed.includes(modality))
   const seen = new Set<string>()
   for (const message of options.messages as readonly WireableMessage[]) {
     for (const block of message.content ?? []) {
@@ -165,8 +172,11 @@ export function enforceModalities(options: GenerateOptions, capability: ModelCap
       seen.add(modality)
       if (!allowed.includes(modality)) {
         const label = MODALITY_LABELS[modality] ?? modality
+        const reason = declared.includes(modality)
+          ? `the ${face} wire face cannot carry "${label}" even though the model declares it`
+          : `model "${String(options.model)}" does not declare "${label}" input`
         throw new LlmError(
-          `model "${String(options.model)}" does not declare "${label}" input, but this session includes a ${label} attachment or history; switch to a model with ${label} input, or start a new session`,
+          `${reason}, but this session includes a ${label} attachment or history; switch to a model and face that support ${label}, or start a new session`,
           'INVALID_REQUEST',
         )
       }
