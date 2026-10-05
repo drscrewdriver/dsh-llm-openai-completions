@@ -11,11 +11,11 @@
  * and pi-ai serves the route unchanged.
  *
  * Takeover judgment (single source of truth, this plugin's own settings
- * section): `enabled && (manual providers ∪ auto-identified)` where
- * auto-identified = custom openai-completions gateway AND thinking declared
- * (see adapter/identify — same-origin port of dsh-thinking-levels'
- * identification). The data plane stays in llm-pi-ai, read through
- * `describe()` per request.
+ * section): `enabled && providers.includes(route)` — pure manual membership.
+ * The capability card's per-route takeover checkbox writes exactly this list,
+ * so the checkbox, the dispatch, and dsh-thinking-levels' gating all read one
+ * truth. The data plane stays in llm-pi-ai, read through `describe()` per
+ * request.
  *
  * The adapter never guesses: `system` is always `role: "system"`, thinking is
  * driven by the model's `compat.thinkingFormat`, the receive side splits
@@ -183,7 +183,7 @@ export function apply(ctx: Context, config: Config = DEFAULT_CONFIG): void {
   ) => void
   on('llm/stream', async function* (options, next) {
     const cfg = current()
-    const routes = takeoverRouteSet(cfg.enabled, cfg.providers, readSection<PiAiSection>(ctx, PI_AI_NAMESPACE)?.value)
+    const routes = takeoverRouteSet(cfg.enabled, cfg.providers)
     const takeOver = routes !== null && routes.has(String(options.provider))
     ctx.logger?.debug?.(
       '[llm-openai-completions] stream provider=%s model=%s effort=%s enabled=%s routes=%j takeOver=%s',
@@ -210,9 +210,9 @@ export function apply(ctx: Context, config: Config = DEFAULT_CONFIG): void {
     // construction, since dispatch only rewrites prompts on taken-over routes.
     listHostedModels(): Array<{ provider: string; id: string; name?: string }> {
       const cfg = current()
-      const piAi = readSection<{ providers?: Record<string, { models?: Array<Record<string, unknown>> }> }>(ctx, PI_AI_NAMESPACE)?.value
-      const routes = takeoverRouteSet(cfg.enabled, cfg.providers, piAi)
+      const routes = takeoverRouteSet(cfg.enabled, cfg.providers)
       if (routes === null) return []
+      const piAi = readSection<{ providers?: Record<string, { models?: Array<Record<string, unknown>> }> }>(ctx, PI_AI_NAMESPACE)?.value
       const hosted: Array<{ provider: string; id: string; name?: string }> = []
       for (const [provider, profile] of Object.entries(piAi?.providers ?? {})) {
         if (!routes.has(provider) || !Array.isArray(profile.models)) continue

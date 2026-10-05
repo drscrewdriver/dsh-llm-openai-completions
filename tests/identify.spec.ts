@@ -86,22 +86,16 @@ describe('identifyTakeoverProviders', () => {
   })
 })
 
-describe('takeoverRouteSet — the dispatch judgment', () => {
-  const piAi: PiAiSection = { providers: { ...customThinkingProvider } }
-
+describe('takeoverRouteSet — the dispatch judgment (pure manual membership)', () => {
   it('disabled switch takes over nothing (null)', () => {
-    expect(takeoverRouteSet(false, ['local35b'], piAi)).toBeNull()
+    expect(takeoverRouteSet(false, ['local35b'])).toBeNull()
   })
 
-  it('enabled unions the manual list with the identified routes', () => {
-    expect(takeoverRouteSet(true, ['manual-route'], piAi)).toEqual(new Set(['manual-route', 'local35b']))
+  it('enabled takes over exactly the manual list (the checkbox is the truth)', () => {
+    expect(takeoverRouteSet(true, ['local35b', 'manual-route'])).toEqual(new Set(['local35b', 'manual-route']))
   })
 
-  it('manual entries cover routes outside the auto criteria', () => {
-    expect(takeoverRouteSet(true, ['customNoThink'], piAi)).toEqual(new Set(['customNoThink', 'local35b']))
-  })
-
-  it('works without an llm-pi-ai section (manual only)', () => {
-    expect(takeoverRouteSet(true, ['a'], undefined)).toEqual(new Set(['a']))
+  it('auto-identified routes are NOT implicitly taken over (explicit opt-in only)', () => {
+    expect(takeoverRouteSet(true, [])).toEqual(new Set())
   })
 })

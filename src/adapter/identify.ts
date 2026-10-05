@@ -102,19 +102,20 @@ export function identifyTakeoverProviders(section: PiAiSection | undefined): str
 }
 
 /**
- * The dispatch judgment over one request's provider route. `enabled === false`
- * takes over nothing; otherwise the union of the section's manual `providers`
- * list and the auto-identified routes decides.
+ * The dispatch judgment over one request's provider route: pure manual
+ * membership. The capability card's per-route takeover checkbox is the single
+ * per-route truth — checked ⇔ route ∈ providers — so dispatch MUST use the
+ * same set or the checkbox would lie. (The auto-identify functions remain
+ * exported as pure utilities for hints/diagnostics; they no longer widen the
+ * judgment.)
  * @param enabled - the live `enabled` switch.
  * @param manualProviders - the live manual `providers` list.
- * @param piAi - the live llm-pi-ai section.
  * @returns the set of taken-over routes, or `null` when disabled.
  */
 export function takeoverRouteSet(
   enabled: boolean,
   manualProviders: readonly string[],
-  piAi: PiAiSection | undefined,
 ): Set<string> | null {
   if (!enabled) return null
-  return new Set([...manualProviders, ...identifyTakeoverProviders(piAi)])
+  return new Set(manualProviders)
 }
