@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import { providerResolverOf } from '../src/adapter/config.ts'
 
-/** A settings-service stub returning one canned section per namespace. */
-const settingsOf = (sections: Record<string, unknown>) => ({
-  get: (ns: string) => sections[ns],
-})
+/** The llm-pi-ai section a describe() read would return. */
+const piAiOf = (section: unknown) => section as import('../src/adapter/identify.ts').PiAiSection
+/** Compatibility stub factory: the old get-based face, now unwrapped at the call site. */
+const settingsOf = (sections: Record<string, unknown>) => sections
 
 describe('providerResolverOf — model capability resolution', () => {
   it('resolves baseURL and models from the llm-pi-ai section', () => {
@@ -18,14 +18,14 @@ describe('providerResolverOf — model capability resolution', () => {
         },
       },
     })
-    const info = providerResolverOf(settings)('local-35b')
+    const info = providerResolverOf(piAiOf(settings['llm-pi-ai']))('local-35b')
     expect(info?.baseURL).toBe('http://192.168.100.242:8200/v1')
     expect(info?.models['Qwen3.6-35B-A3B']?.vision).toBe(true)
   })
 
   it('unknown provider resolves to undefined', () => {
     const settings = settingsOf({ 'llm-pi-ai': { providers: {} } })
-    expect(providerResolverOf(settings)('nope')).toBeUndefined()
+    expect(providerResolverOf(piAiOf(settings['llm-pi-ai']))('nope')).toBeUndefined()
   })
 
   it('missing settings service resolves to undefined', () => {
@@ -47,7 +47,7 @@ describe('providerResolverOf — model capability resolution', () => {
         },
       },
     })
-    const model = providerResolverOf(settings)('local-35b')?.models['Qwen3.6-35B-A3B']
+    const model = providerResolverOf(piAiOf(settings['llm-pi-ai']))('local-35b')?.models['Qwen3.6-35B-A3B']
     expect(model?.supportsReasoningEffort).toBe(false)
     expect(model?.thinkingFormat).toBe('qwen')
     expect(model?.reasoningEfforts).toEqual({ off: null, high: 'high' })
@@ -68,7 +68,7 @@ describe('providerResolverOf — model capability resolution', () => {
         },
       },
     })
-    const model = providerResolverOf(settings)('local-35b')?.models['Qwen3.8-27B']
+    const model = providerResolverOf(piAiOf(settings['llm-pi-ai']))('local-35b')?.models['Qwen3.8-27B']
     expect(model?.supportsReasoningEffort).toBe(true)
   })
 
@@ -84,7 +84,7 @@ describe('providerResolverOf — model capability resolution', () => {
         },
       },
     })
-    const model = providerResolverOf(settings)('local-35b')?.models['Qwen3.6-35B-A3B']
+    const model = providerResolverOf(piAiOf(settings['llm-pi-ai']))('local-35b')?.models['Qwen3.6-35B-A3B']
     expect(model?.vision).toBe(true)
   })
 
@@ -100,7 +100,7 @@ describe('providerResolverOf — model capability resolution', () => {
         },
       },
     })
-    const model = providerResolverOf(settings)('local-35b')?.models['Qwen3.6-35B-A3B']
+    const model = providerResolverOf(piAiOf(settings['llm-pi-ai']))('local-35b')?.models['Qwen3.6-35B-A3B']
     expect(model?.vision).toBe(false)
   })
 
@@ -116,7 +116,7 @@ describe('providerResolverOf — model capability resolution', () => {
         },
       },
     })
-    const model = providerResolverOf(settings)('local-35b')?.models['Qwen3.6-35B-A3B']
+    const model = providerResolverOf(piAiOf(settings['llm-pi-ai']))('local-35b')?.models['Qwen3.6-35B-A3B']
     expect(model?.thinkingFormat).toBe('qwen')
     expect(model?.supportsReasoningEffort).toBe(false)
   })

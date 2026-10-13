@@ -11,7 +11,8 @@
  * @module dsh-thinking-levels/adapter/translate
  */
 
-import { CallId, EMPTY_RESPONSE_CODE } from '@deepseek-ai/dsh-llm'
+import { EMPTY_RESPONSE_CODE } from '@deepseek-ai/dsh-llm'
+import { ToolCallId } from './tool-call-id.ts'
 import type { ContentBlock, FinishReason, StreamChunk, TokenUsage } from '@deepseek-ai/dsh-llm'
 import { DONE } from './sse.ts'
 
@@ -83,7 +84,13 @@ function closeBlock(block: OpenBlock): ContentBlock {
     case 'reasoning': return { type: 'reasoning', text: block.text }
     case 'tool-call': return {
       type: 'tool-call',
-      id: CallId(block.callId ?? ''),
+      // Some gateways (MiMo's omni endpoints) stream tool calls with NO id at
+      // all — the harness rejects an empty id durably (`tool call id requires
+      // a nonempty string`), so mint a stable per-stream fallback while the
+      // name is known (or `call-N` when it never arrived either).
+      id: ToolCallId(block.callId && block.callId.length > 0
+        ? block.callId
+        : (block.name && block.name.length > 0 ? `call_${block.name}_${block.index}` : `call_${block.index}`)),
       name: block.name ?? '',
       arguments: block.text,
     }
@@ -221,7 +228,9 @@ export async function* translate(payloads: AsyncIterable<string>): AsyncGenerato
           toolBlocks.set(call.index ?? 0, block)
           yield { type: 'block-start', index: block.index, blockType: 'tool-call' }
         }
-        if (call.id !== undefined) block.callId = call.id
+        // MiMo's omni stream sends `id: null` on every delta after the first —
+        // a `!== undefined` guard lets null through to `.length` and throws.
+        if (typeof call.id === 'string' && call.id.length > 0) block.callId = call.id
         // Only a NON-EMPTY name updates the block. Gateways (mimo / vLLM /
         // Qwen3) repeat `function.name` on later deltas — sometimes as null or
         // "" alongside the arguments fragment — and overwriting the name
@@ -234,7 +243,9 @@ export async function* translate(payloads: AsyncIterable<string>): AsyncGenerato
         yield {
           type: 'tool-call-delta',
           index: block.index,
-          id: CallId(block.callId ?? ''),
+          id: ToolCallId(block.callId && block.callId.length > 0
+            ? block.callId
+            : (block.name && block.name.length > 0 ? `call_${block.name}_${block.index}` : `call_${block.index}`)),
           ...block.name !== undefined ? { name: block.name } : {},
           argumentsDelta: fragment,
         }

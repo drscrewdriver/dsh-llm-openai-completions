@@ -1,89 +1,73 @@
 # dsh-llm-openai-completions
 
-> ⛔ **This project is discontinued and delisted (2026-10-01).** `dsh-thinking-levels` no longer needs it, so it is no longer maintained: npm stays at 0.1.0, the 0.2.0 line (vision / image input) was never published and will not be, and there will be no releases or host-version-line adaptation.
+> ✅ **Revived as 0.3.0 (2026-10-05).** The transport takeover is back with real features pi-ai cannot offer: multimodal true-send (image/audio/video/PDF) with a modality hard gate, an `llmOpenaiCompletions` prompt-source seam for dsh-promptbook-class consumers, credentials-service keys, and full-rc dynamic compatibility across `0.1.0-rc.8` – `0.2.0-rc.2`. The old `settings.get`-era architecture is gone — the judgment is `enabled && providers.includes(route)` (pure manual membership: the per-route checkbox is the truth), and the switch lives in this plugin's own settings section. Contract surfaces: [AGENTS.md](./AGENTS.md).
 
-- [English README](./README.md)
-- [中文 README](./README.zh.md)
-- [日本語 README](./README.ja.md)
-- [한국어 README](./README.ko.md)
-- [Installation guide](./INSTALL.md)
-- [中文安装指南](./INSTALL.zh.md)
-- [日本語インストールガイド](./INSTALL.ja.md)
-- [한국어 설치 안내](./INSTALL.ko.md)
-- [Changelog](./CHANGELOG.md)
+**Positioning**: revived as a short-circuit backend that dsh-thinking-levels can drive — speaking **all three mainstream API formats** per route `api` declaration (OpenAI Chat Completions · Anthropic Messages · OpenAI Responses), built primarily for Xiaomi MiMo multimodal: true audio/video/PDF send.
 
-**OpenAI-completions-compatible adapter for custom gateways** (vLLM / LM Studio / self-hosted OpenAI proxies) — a "fourth adapter class" next to `llm-deepseek` and `llm-pi-ai`, with behavior that never guesses:
+## README languages / 说明文档
+
+English · [中文](./README.zh.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Deutsch](./README.de.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · [Русский](./README.ru.md)
+
+Install guides: [EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · [日本語](./INSTALL.ja.md) · [한국어](./INSTALL.ko.md) · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) — [Changelog](./CHANGELOG.md)
+
+**OpenAI-completions-compatible transport takeover for custom gateways** (vLLM / LM Studio / self-hosted OpenAI proxies): the plugin short-circuits the `llm/stream` waterfall for taken-over routes and serves them with behavior that never guesses — the data plane (baseURL / models / `reasoningEfforts` / `compat` / `input`) stays in **llm-pi-ai**, read live through `settings.describe()`.
 
 - `system` is **always** `role: "system"` — a custom gateway never receives `developer`, so the `Unexpected message role` 400 is gone even when thinking is enabled (pi-ai's `detectCompat` defaults `supportsDeveloperRole: true` for non-standard URLs, which breaks every custom gateway once a `reasoningEfforts` table marks the model as reasoning).
 - Thinking is driven by the model's `compat.thinkingFormat`:
-  - `qwen` → wire `enable_thinking: boolean` (Qwen3.6-style; no `reasoning_effort`, no budget)
+  - toggle models (`reasoningEfforts` table, no `supportsReasoningEffort`) → `chat_template_kwargs.enable_thinking` (+ preserve) — always, regardless of the configured format, because that is what bare vLLM Qwen3 templates honor
+  - `qwen` → top-level `enable_thinking: boolean` (no `reasoning_effort`, no budget)
   - `qwen-chat-template` → `chat_template_kwargs.enable_thinking` (+ preserve)
   - effort-capable → `reasoning_effort` passthrough (Qwen3.8-style)
-- The receive side splits Qwen3-style ` response` content (vLLM renders thinking into `content` with no `reasoning_content` field) into a reasoning block — no more thinking text mixed into the body.
+- The receive side splits Qwen3-style `</think>` content (vLLM renders thinking into `content` with no `reasoning_content` field) into a reasoning block, and reads `reasoning_content` / `reasoning` / `reasoning_text`.
+- No `thinking_budget` is sent (deliberate: avoid truncation surprises).
 
-## 🎉 Major Feature — Vision/Image Input (v0.2.0)
+## 🎉 0.3.0 — Multimodal true-send with a modality hard gate
 
-Vision models can now **receive user-uploaded images — single or multiple** (multi-image order
-preserved, text parts interleaved in source order):
+The short-circuit consumes the waterfall **before** the host projects file blocks to text handles, so media arrives structural and is encoded for the wire — no host patches, no file-handle reconstruction:
 
-- When the target model declares vision capability in its llm-pi-ai config (`input` contains `image`,
-  written by the dsh-thinking-levels capability card as `['text','image']`), user `image` content
-  blocks are serialized as OpenAI-compatible multi-part `content` arrays — each `image_url` is a
-  `data:<mediaType>;base64,<…>` data URI (bytes resolved via the attachment store's `readImage` and
-  base64-encoded). Multiple images in one message are supported and kept in order.
-- **Non-vision models still reject loudly** (`UNSUPPORTED_CONTENT`) — nothing is silently dropped.
-- Requirements: image reading depends on the host providing `ctx.attachments` (attachment store);
-  text-only models are unaffected.
+- **image** → `image_url` data-URI parts (multi-image count and order preserved, text interleaved in source order)
+- **audio** → `input_audio` parts (base64 + format)
+- **video** → `video_url` data-URI parts (20 MB inline cap)
+- **PDF** → OpenAI `file` parts
+- **Modality hard gate**: every media block in the full history is checked against the model's llm-pi-ai `input` declaration before anything is read or sent; an undeclared modality is refused loudly (`INVALID_REQUEST`, naming the modality) instead of being silently degraded to text.
+- One-shot calls (`session-title`) strip media blocks and never think.
+- Bytes come from the attachment service (`readImage` / `readFileStream`); non-vision models still reject images loudly (`UNSUPPORTED_CONTENT`).
 
-Configuration lives in the **llm-pi-ai** section (Settings → Models): baseURL, models,
-`reasoningEfforts`, `compat.thinkingFormat`, `input`. This plugin only swaps the wire behavior of the providers you list.
+## 🎉 0.3.0 — The `llmOpenaiCompletions` prompt-source seam
 
-> **Capability detection config**: vision / thinking / reason-effort support / level tiers are all read
-> from a model entry's `input` / `reasoningEfforts` / `compat` fields in llm-pi-ai (the base editor does
-> **not** expose these fields). They are written by the **dsh-thinking-levels** capability card per user
-> action, or edited by hand in `settings.yaml` — one shared config, the adapter just reads it. Full field
-> table and wire contract: [docs/settings-spec.md §4.1](docs/settings-spec.md).
+`ctx.provide("llmOpenaiCompletions", { listHostedModels, registerPromptSource })` — the same contract dsh-llm-mimo exposes as `llmMimo`, for dsh-promptbook-class consumers: replace the **actually dispatched** system prompt and tool descriptions per `(provider, model)`, deterministically (cache-safe), text-only (never `name`/`parameters`), zero behavior with no source registered. Scope guarantee: consulted only on taken-over routes. Full contract: [AGENTS.md §1](./AGENTS.md).
 
-## Preview
+## Three wire faces (per-route `api`)
 
-Live screenshot — **powered together with dsh-thinking-levels**: the custom model's "thinkable"
-level dropdown (Default / Off / On). It demonstrates the capability-detection → takeover chain:
+| face | endpoint | auth | thinking | modalities |
+|---|---|---|---|---|
+| `openai-completions` (default) | `{base}/chat/completions` | Bearer | thinkingFormat matrix | image/audio/video/pdf |
+| `anthropic-messages` | `{base}/v1/messages` | `x-api-key` + version header | off/one-shot → disabled | **image only** |
+| `openai-responses` | `{base}/responses` | Bearer | `reasoning.effort` (honest fold) | image/audio/video/pdf |
 
-<figure>
-  <img style="max-width:100%" alt="Custom model thinking-level dropdown (Qwen3.6-35B-A3B, options Default/Off/On): the detection + takeover chain — the dsh-thinking-levels capability card writes input/reasoningEfforts/compat on the llm-pi-ai model entry, then the dsh-llm-openai-completions adapter reads them and takes over the wire behavior (compat.thinkingFormat: qwen→enable_thinking, effort-capable→reasoning_effort passthrough)" src="assets/自定义模型的可思考.png" />
-  <figcaption>Joint capability card + takeover chain with dsh-thinking-levels: one shared llm-pi-ai config — the <strong>card detects</strong> (writes input/reasoningEfforts/compat), the <strong>adapter takes over the wire</strong> (sends enable_thinking / reasoning_effort per compat.thinkingFormat).</figcaption>
-</figure>
+- Every face: `max_tokens` = request value → model row → route default → 8192; the leading system message is extracted into the face's system channel and stripped from the message list.
+- Anthropic pairing discipline: tool_use/tool_result must pair (broken history = loud `INVALID_REQUEST`); assistant thinking is not replayed (no signature in the harness — strictly weaker than the chat face).
+- Responses boundaries: `stop` dropped (no Responses spelling); reasoning effort folds honestly; probe calibration pending against real MiMo endpoints.
 
-## Install
+## Takeover judgment (single source of truth)
 
-```bash
-# npm (recommended)
-dsh plugin --profile web add dsh-llm-openai-completions -w
-# local link (development)
-# dsh plugin --profile web add link:E:/test/rewrite-agently/dsh-llm-openai-completions -w
-dsh web
 ```
-
-## Enable
-
-The plugin replaces the stream of the providers you list (default off; existing
-routes owned by llm-pi-ai are wrapped, not re-registered, so no adapter
-conflict). **The short-circuit settings contract — the `llm-openai-completions`
-namespace, its fields, the takeover semantics, and the wire behavior — is
-specified in [docs/settings-spec.md](docs/settings-spec.md).** Third-party
-plugins (e.g. a dsh-thinking-effort control layer) that want to interoperate
-with this takeover mechanism should follow the standard
-**[docs/takeover-spec.md](docs/takeover-spec.md)** (Takeover Control Spec).
+takeover(route) = section.enabled === true
+                  && section.providers.includes(route)
+```
 
 ```yaml
 # ~/.dsh/profiles/web/cordis.patch.yml (or Settings → Plugins → dsh-llm-openai-completions)
 llm-openai-completions:
   enabled: true
-  providers:
+  providers:        # the takeover list — the single truth (see below)
     - local-35b
 ```
 
-Your `local-35b / Qwen3.6-35B-A3B` config in llm-pi-ai stays as-is:
+- The switch and the takeover list live in **this plugin's own settings section** (`.volatile()` — runtime-editable, host-generated form).
+- **dsh-thinking-levels drives both fields**: its `takeover` switch mirrors `{enabled}` into this section, and its model panel's per-route takeover checkbox writes `providers` directly — the checkbox is the truth, so dispatch, `listHostedModels`, and the control layer's gating all read one set.
+- Disabling the switch (or unmounting the plugin) falls through to pi-ai unchanged — no adapter registration to unwind.
+- Your llm-pi-ai config stays as-is (one shared config; this adapter only reads it — full field table: [docs/settings-spec.md](docs/settings-spec.md), takeover contract: [docs/takeover-spec.md](docs/takeover-spec.md)):
 
 ```yaml
 llm-pi-ai:
@@ -98,30 +82,51 @@ llm-pi-ai:
             thinkingFormat: qwen        # enable_thinking only, no reasoning_effort
 ```
 
-## Known limitations (v0.2.0)
+## Preview
 
-- **Non-vision models do not support images**: a model that does not declare image input (via `input`
-  containing `image`) is rejected with `UNSUPPORTED_CONTENT` (image bytes live in the attachment
-  service and are only resolved on the vision path).
-- **No `thinking_budget`** (deliberate: avoid truncation surprises).
-- The thinking-level **selector** still comes from the model's reasoning metadata (llm-pi-ai + dsh-thinking-levels' Off/On toggle); this plugin controls the wire behavior.
-- Restart `dsh web` after install; the wrap re-applies on `llm/adapters-updated`.
+Live screenshot — **powered together with dsh-thinking-levels**: the custom model's "thinkable"
+level dropdown (Default / Off / On). It demonstrates the capability-detection → takeover chain:
+
+<figure>
+  <img style="max-width:100%" alt="Custom model thinking-level dropdown (Qwen3.6-35B-A3B, options Default/Off/On): the detection + takeover chain — the dsh-thinking-levels capability card writes input/reasoningEfforts/compat on the llm-pi-ai model entry, then the dsh-llm-openai-completions adapter reads them and takes over the wire behavior (compat.thinkingFormat: qwen→enable_thinking, effort-capable→reasoning_effort passthrough)" src="assets/自定义模型的可思考.png" />
+  <figcaption>Joint capability card + takeover chain with dsh-thinking-levels: one shared llm-pi-ai config — the <strong>card detects</strong> (writes input/reasoningEfforts/compat), the <strong>transport takes over the wire</strong> (sends enable_thinking / reasoning_effort per compat.thinkingFormat).</figcaption>
+</figure>
+
+## Install
+
+Host compatibility: **every rc from `0.1.0-rc.8` through `0.2.0-rc.2`**, version-conditional in code (shape-detected settings faces, a `ToolCallId`/`CallId` shim, credentials → launch-environment → `process.env` key resolution). See the [install guide](./INSTALL.md) for all routes:
+
+```bash
+# npm (recommended)
+dsh plugin --profile web add dsh-llm-openai-completions -w
+# local tgz
+dsh plugin --profile web add /path/to/dsh-llm-openai-completions-0.3.0.tgz -w
+dsh web
+```
+
+## Known limitations
+
+- **PDF support is endpoint-dependent** (MiMo chat rejects it outright; some relays accept it) — the `input` declaration is a capability claim; check your endpoint before declaring `pdf`.
+- **Non-media file attachments** (e.g. `.txt`) have no cross-gateway wire shape; on taken-over routes they degrade to a text placeholder (content stays reachable through the file tools).
+- **No `thinking_budget`** (deliberate).
+- The thinking-level **selector** still comes from the model's reasoning metadata (llm-pi-ai + dsh-thinking-levels); this transport controls the wire behavior only.
+- Restart `dsh web` after install; the takeover listener composes at boot.
 
 ## Development
 
 ```bash
 npm install
 npm run typecheck   # tsc --noEmit
-npm test            # vitest (serialize / sse / translate)
+npm test            # vitest (config / identify / serialize / sse / translate / prompt-source / version-conditional)
 npm run build       # tsc → lib/
+node scripts/audit-host-faces.mjs   # 15-rc dependency-surface audit
 ```
-
-E2E check: `node <repo>/scripts/...` or the local-SSE-server harness in the
-tests (system role / enable_thinking / `</think>` split against a fake vLLM).
 
 ## Upstream proposal
 
 This plugin doubles as a reference implementation for the llm-pi-ai / pi-ai
 compatibility gaps: custom URLs should default `supportsDeveloperRole: false`,
-the receive side should split `</think>` content, and `compat` should expose
-`supportsDeveloperRole` for gateways that genuinely support it.
+the receive side should split `</think>` content, `compat` should expose
+`supportsDeveloperRole` for gateways that genuinely support it — and the host
+projection layer could grow the same capability-aware file-block gate this
+plugin applies per route.
