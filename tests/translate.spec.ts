@@ -101,6 +101,19 @@ describe('translate — reasoning fields and tool calls', () => {
   })
 })
 
+
+  it('tolerates id: null on follow-up deltas (MiMo omni sends null after the first)', async () => {
+    const events = await run([
+      JSON.stringify({ choices: [{ delta: { tool_calls: [{ index: 0, id: null, function: { name: 'read_video', arguments: '' } }] } }] }),
+      JSON.stringify({ choices: [{ delta: { tool_calls: [{ index: 0, id: null, function: { arguments: '{"path":"a.mp4"}' } }] } }] }),
+      JSON.stringify({ choices: [{ delta: {}, finish_reason: 'tool_calls' }] }),
+      '[DONE]',
+    ])
+    const block = events.find(e => e.type === 'block-end')?.block as { id: string; name: string }
+    expect(block.id).toBe('call_read_video_0')
+    expect(block.name).toBe('read_video')
+  })
+
 describe('translate — usage and finish', () => {
   it('defers usage/finish to the [DONE] sentinel and maps finish reason', async () => {
     const events = await run([
@@ -120,5 +133,34 @@ describe('translate — usage and finish', () => {
       '[DONE]',
     ])
     expect(events.at(-1)).toMatchObject({ type: 'finish', reason: { kind: 'error', failure: { code: 'EMPTY_RESPONSE' } } })
+  })
+})
+
+describe('translate — empty tool-call id fallback (MiMo omni)', () => {
+  it('mints a stable id when the gateway streams a tool call with no id', async () => {
+    const events = await run([
+      JSON.stringify({ choices: [{ delta: { tool_calls: [{ index: 0, id: '', function: { name: 'read_video', arguments: '' } }] } }] }),
+      JSON.stringify({ choices: [{ delta: { tool_calls: [{ index: 0, function: { arguments: '{"path":"a.mp4"}' } }] } }] }),
+      JSON.stringify({ choices: [{ delta: {}, finish_reason: 'tool_calls' }] }),
+      '[DONE]',
+    ])
+    const deltas = events.filter(e => e.type === 'tool-call-delta') as Array<{ id: string }>
+    for (const d of deltas) expect(d.id.length).toBeGreaterThan(0)
+    const block = events.find(e => e.type === 'block-end')?.block as { type: string; id: string; name: string; arguments: string }
+    expect(block.type).toBe('tool-call')
+    expect(block.id).toBe('call_read_video_0')
+    expect(block.name).toBe('read_video')
+    expect(JSON.parse(block.arguments)).toEqual({ path: 'a.mp4' })
+  })
+
+  it('keeps a real wire id and never overwrites it with the fallback', async () => {
+    const events = await run([
+      JSON.stringify({ choices: [{ delta: { tool_calls: [{ index: 0, id: 'call_real', function: { name: 'web_search', arguments: '' } }] } }] }),
+      JSON.stringify({ choices: [{ delta: { tool_calls: [{ index: 0, id: '', function: { arguments: '{}' } }] } }] }),
+      JSON.stringify({ choices: [{ delta: {}, finish_reason: 'tool_calls' }] }),
+      '[DONE]',
+    ])
+    const block = events.find(e => e.type === 'block-end')?.block as { id: string }
+    expect(block.id).toBe('call_real')
   })
 })

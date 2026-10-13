@@ -18,14 +18,26 @@
 import { LlmError, attributionHeaders } from '@deepseek-ai/dsh-llm'
 import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
 import { serializeRequest, enforceModalities, mediaTypeFromName } from './serialize.ts'
-import type { ImageSource, MediaMap } from './serialize.ts'
+import type { ImageSource, MediaMap, WireableMessage } from './serialize.ts'
 import { serializeAnthropic, translateAnthropic } from './anthropic.ts'
 import { serializeResponses, translateResponses } from './responses.ts'
 import { rootFor } from './face.ts'
+import { maskUncarriableMedia, withExtraInputs } from './mask.ts'
 import { parseSse } from './sse.ts'
 import { translate } from './translate.ts'
 import type { ProviderResolver } from './config.ts'
 import type { PromptSourceRegistry } from './prompt-source.ts'
+
+/**
+ * Live policy knobs resolved per stream (volatile settings): the emergency
+ * modality fallback and extra input modalities merged into the model's
+ * declared `input` (the host pi-ai schema caps `input` at text|image, so
+ * video/audio declarations live here, keyed by 'provider/model' or 'provider').
+ */
+export interface AdapterPolicy {
+  modalFallback: 'refuse' | 'mask'
+  extraInputs: Record<string, string[]>
+}
 
 /** Map an HTTP status to the harness failure code vocabulary. */
 function httpErrorCode(status: number): string {
@@ -67,6 +79,7 @@ export class OpenAiCompletionsAdapter {
     private readonly resolveAttachments: () => AttachmentStoreLike | undefined,
     private readonly resolveApiKey: (options: GenerateOptions, apiKeyEnv: string | undefined) => Promise<string | undefined>,
     private readonly promptSources: PromptSourceRegistry,
+    private readonly resolvePolicy: () => AdapterPolicy = () => ({ modalFallback: 'refuse', extraInputs: {} }),
   ) {}
 
   /**
@@ -138,13 +151,31 @@ export class OpenAiCompletionsAdapter {
         'NO_ADAPTER',
       )
     }
-    const capability = provider.models[input.model] ?? UNKNOWN_CAPABILITY
+    const policy = this.resolvePolicy()
+    let capability = provider.models[input.model] ?? UNKNOWN_CAPABILITY
+    // Extra modalities from plugin settings (the host pi-ai schema caps the
+    // model row's `input` at text|image): union per 'provider/model', then per
+    // provider. Only video/audio/pdf are offered by the settings schema.
+    const extra = policy.extraInputs[`${String(input.provider)}/${String(input.model)}`]
+      ?? policy.extraInputs[String(input.provider)]
+    capability = withExtraInputs(capability, extra)
+    // Emergency fallback FIRST: when masking is on, uncarriable media blocks
+    // become deterministic text placeholders so the request survives the gate,
+    // skips media byte collection, and serializes on every face. Default
+    // ('refuse') keeps the hard gate exactly as before.
+    let working: GenerateOptions = input
+    if (policy.modalFallback === 'mask' && input.purpose !== 'session-title') {
+      const masked = maskUncarriableMedia(input.messages as readonly WireableMessage[], capability, provider.face, String(input.model))
+      if (masked.records.length > 0) {
+        working = { ...input, messages: masked.messages as never }
+      }
+    }
     // Modality gate first: an undeclared attachment is refused before any
     // bytes are read or anything is sent (silent loss becomes a loud refusal).
-    enforceModalities(input, capability, provider.face)
+    enforceModalities(working, capability, provider.face)
     // Prompt source seam: consumers rewrite the system prompt / tool
     // descriptions for taken-over dispatches only (scope guarantee).
-    const options = this.promptSources.apply(input, String(input.provider))
+    const options = this.promptSources.apply(working, String(input.provider))
     const media = await this.collectMedia(options)
     // Vision models keep the lazy image-source path for any image the
     // pre-collection did not cover; non-vision models reject images loudly.

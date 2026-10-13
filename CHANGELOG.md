@@ -1,6 +1,30 @@
 # Changelog
 
-## 0.4.0 — Three wire faces (unreleased)
+## 0.4.2 — 视频工具与形状降级（2026-10-13）
+
+### 新增
+
+- **`read_video` 工具**（`src/video-tool.ts`）：把本地视频文件作为原生 file block 附进会话上下文，
+  下一轮以 `video_url` data-URI part 交给被接管的模型。工具本身不发 API —— 视频随会话自己的
+  模型流量走，计费、凭据、历史留在同一处。定义是手写的编译期 JSON-Schema 子集（与
+  `@deepseek-ai/dsh-tools` 的 `defineTool` 同形），所以**不新增 dsh-tools 依赖、peer/engines 矩阵不动**。
+  开关 `videoTool`（volatile，默认开）。
+- **`modalFallback: 'refuse' | 'mask'`**（`src/adapter/mask.ts`）：当会话历史里有目标模型在选中
+  wire face 上带不动的媒体块时，`mask` 用确定性 meta 文本替换它们而不是拒请求；`refuse`（默认）
+  保留硬闸。mask 是**请求局部**的：会话历史仍保留结构化块，切回可承载媒体的模型即恢复原生查看。
+  执行次序是重点：mask 跑在 `adapter.stream()` 里 **`enforceModalities` 之前**，所以被 mask 的请求
+  仍然要过闸（此前把 mask 放在 `serializeRequest` 里是死代码，因为闸先抛异常）。
+
+### 修复
+
+- 双清单同步：`dsh.plugin.json` 停在 `0.4.0` 而 `package.json` 已到 `0.4.1-beta.4`，现两面 `0.4.2`。
+
+### 验证
+
+- `tsc --noEmit` 0 错；vitest 12 文件 / 122 例全绿（含新增 `tests/mask.spec.ts`）；`npm run build` 退 0。
+- 兼容性矩阵未动：`engines.dsh` 与 peer 仍为全 15 线枚举（`0.1.0-rc.2 … 0.2.0-rc.2`）。
+
+## 0.4.0 — Three wire faces（已发布，npm `latest` 曾指此版）
 
 - **Per-route wire face from the pi-ai `api` declaration** — the transport now
   speaks all three protocols pi-ai can configure: `openai-completions`

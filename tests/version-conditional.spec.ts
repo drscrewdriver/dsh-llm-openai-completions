@@ -52,9 +52,9 @@ describe('version-conditional surfaces', () => {
       provide: () => {},
       logger: { info: () => {}, debug: () => {}, warn: () => {} },
     } as unknown as Context
-    apply(ctx, { enabled: false, providers: [] })
+    apply(ctx, { enabled: false, providers: [], modalFallback: 'refuse', extraInputs: {}, videoTool: true })
     // The namespace is registered with the entry as base…
-    expect(registered).toEqual([{ ns: 'llm-openai-completions', base: { enabled: false, providers: [] } }])
+    expect(registered).toEqual([{ ns: 'llm-openai-completions', base: { enabled: false, providers: [], modalFallback: 'refuse', extraInputs: {}, videoTool: true } }])
     expect(watched).toBe(true)
     // …and the legacy getter now feeds current(): enabled flips to true.
     expect(registered.length).toBe(1)
@@ -76,7 +76,7 @@ describe('version-conditional surfaces', () => {
       provide: () => {},
       logger: { info: () => {}, debug: () => {}, warn: () => {} },
     } as unknown as Context
-    apply(ctx, { enabled: false, providers: [] })
+    apply(ctx, { enabled: false, providers: [], modalFallback: 'refuse', extraInputs: {}, videoTool: true })
     // inject(['settings']) runs, but the 0.1.7+ face has no register — nothing installed.
     expect(injectCalled).toBe(true)
     void formsSettings

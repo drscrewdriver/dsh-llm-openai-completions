@@ -37,18 +37,41 @@ export interface Config {
     enabled: boolean | Volatile<boolean>;
     /** Manual takeover list (route ids), on top of the auto-identified set. */
     providers: string[] | Volatile<string[]>;
+    /**
+     * Emergency fallback when the history carries media the target model cannot
+     * carry on the selected face: `refuse` (default) keeps the hard gate;
+     * `mask` replaces uncarriable media blocks with deterministic meta text so
+     * a model switch stays usable. Request-local — session history is untouched.
+     */
+    modalFallback: 'refuse' | 'mask' | Volatile<'refuse' | 'mask'>;
+    /**
+     * Extra input modalities per 'provider/model' or 'provider' key. The host
+     * pi-ai schema caps a model row's `input` at text|image, so video/audio
+     * declarations for omni models live here and are unioned into the model's
+     * effective `input` during dispatch. Example:
+     * `{ "xiaomi/mimo-v2.6-flash": ["video", "audio"] }`.
+     */
+    extraInputs: Record<string, string[]> | Volatile<Record<string, string[]>>;
+    /** Expose the `read_video` tool (registers always; this gate applies per execution). */
+    videoTool: boolean | Volatile<boolean>;
 }
 /**
- * Composition-entry schema. Both fields are `.volatile()`: DSH 0.1.7+ hands
+ * Composition-entry schema. Every field is `.volatile()`: DSH 0.1.7+ hands
  * `apply` live refs and generates the settings form from the schema alone,
- * so the switch and the manual list are runtime-editable without a remount.
+ * so all knobs are runtime-editable without a remount.
  */
 export declare const Config: z<Schemastery.ObjectS<NoInfer<{
     enabled: z<boolean, boolean, "volatile-defined">;
     providers: z<NoInfer<string[]>, NoInfer<string[]>, "volatile-defined">;
+    modalFallback: z<"refuse" | "mask", "refuse" | "mask", "volatile-defined">;
+    extraInputs: z<NoInfer<import("@deepseek-ai/cosmokit").Dict<("audio" | "video" | "pdf")[], string>>, NoInfer<import("@deepseek-ai/cosmokit").Dict<("audio" | "video" | "pdf")[], string>>, "volatile-defined">;
+    videoTool: z<boolean, boolean, "volatile-defined">;
 }>>, Schemastery.ObjectT<NoInfer<{
     enabled: z<boolean, boolean, "volatile-defined">;
     providers: z<NoInfer<string[]>, NoInfer<string[]>, "volatile-defined">;
+    modalFallback: z<"refuse" | "mask", "refuse" | "mask", "volatile-defined">;
+    extraInputs: z<NoInfer<import("@deepseek-ai/cosmokit").Dict<("audio" | "video" | "pdf")[], string>>, NoInfer<import("@deepseek-ai/cosmokit").Dict<("audio" | "video" | "pdf")[], string>>, "volatile-defined">;
+    videoTool: z<boolean, boolean, "volatile-defined">;
 }>>, "plain">;
 /** Settings defaults, kept in lockstep with the schema defaults above. */
 export declare const DEFAULT_CONFIG: Config;

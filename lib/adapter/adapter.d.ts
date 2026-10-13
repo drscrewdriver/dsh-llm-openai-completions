@@ -17,6 +17,16 @@
 import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm';
 import type { ProviderResolver } from './config.ts';
 import type { PromptSourceRegistry } from './prompt-source.ts';
+/**
+ * Live policy knobs resolved per stream (volatile settings): the emergency
+ * modality fallback and extra input modalities merged into the model's
+ * declared `input` (the host pi-ai schema caps `input` at text|image, so
+ * video/audio declarations live here, keyed by 'provider/model' or 'provider').
+ */
+export interface AdapterPolicy {
+    modalFallback: 'refuse' | 'mask';
+    extraInputs: Record<string, string[]>;
+}
 /** Minimal attachment-store face for resolving durable media bytes at runtime. */
 export interface AttachmentStoreLike {
     readImage(ref: unknown, signal?: AbortSignal): Promise<{
@@ -42,7 +52,8 @@ export declare class OpenAiCompletionsAdapter {
     private readonly resolveAttachments;
     private readonly resolveApiKey;
     private readonly promptSources;
-    constructor(resolveProvider: ProviderResolver, resolveAttachments: () => AttachmentStoreLike | undefined, resolveApiKey: (options: GenerateOptions, apiKeyEnv: string | undefined) => Promise<string | undefined>, promptSources: PromptSourceRegistry);
+    private readonly resolvePolicy;
+    constructor(resolveProvider: ProviderResolver, resolveAttachments: () => AttachmentStoreLike | undefined, resolveApiKey: (options: GenerateOptions, apiKeyEnv: string | undefined) => Promise<string | undefined>, promptSources: PromptSourceRegistry, resolvePolicy?: () => AdapterPolicy);
     /**
      * Collect the bytes of every media block in the request into a map keyed by
      * attachment id: images through `readImage`, files through

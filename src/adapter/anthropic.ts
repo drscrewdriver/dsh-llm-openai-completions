@@ -319,7 +319,7 @@ export async function* translateAnthropic(payloads: AsyncIterable<string>): Asyn
         yield {
           type: 'tool-call-delta',
           index,
-          id: ToolCallId(block.id ?? ''),
+          id: ToolCallId(block.id && block.id.length > 0 ? block.id : `call_${block.name ?? index}`),
           ...(block.name !== undefined ? { name: block.name } : {}),
           argumentsDelta: delta.partial_json,
         }
@@ -337,7 +337,10 @@ export async function* translateAnthropic(payloads: AsyncIterable<string>): Asyn
         yield {
           type: 'block-end',
           index,
-          block: { type: 'tool-call', id: ToolCallId(block.id ?? ''), name: block.name ?? '', arguments: block.text },
+          // The anthropic protocol guarantees a tool_use id, but a broken
+          // gateway may omit it — an empty id bricks the session durably, so
+          // mint the same stable fallback the chat face uses.
+          block: { type: 'tool-call', id: ToolCallId(block.id && block.id.length > 0 ? block.id : `call_${block.name ?? index}`), name: block.name ?? '', arguments: block.text },
         }
       }
     } else if (type === 'message_delta') {

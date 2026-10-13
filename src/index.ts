@@ -33,11 +33,13 @@ import { launchEnvironmentOf } from '@deepseek-ai/dsh-launch-environment'
 import type { GenerateOptions, StreamChunk } from '@deepseek-ai/dsh-llm'
 import { LlmError } from '@deepseek-ai/dsh-llm'
 import { OpenAiCompletionsAdapter } from './adapter/adapter.ts'
+import type { AdapterPolicy } from './adapter/adapter.ts'
 import { providerResolverOf } from './adapter/config.ts'
 import { PI_AI_NAMESPACE, takeoverRouteSet, type PiAiSection } from './adapter/identify.ts'
 import { PromptSourceRegistry } from './adapter/prompt-source.ts'
 import type { PromptSource, PromptSourceFace } from './adapter/prompt-source.ts'
 import { readSection } from './settings-read.ts'
+import { buildVideoTool } from './video-tool.ts'
 
 export { type PromptSource, type PromptSourceFace } from './adapter/prompt-source.ts'
 
@@ -50,26 +52,52 @@ export interface Config {
   enabled: boolean | Volatile<boolean>
   /** Manual takeover list (route ids), on top of the auto-identified set. */
   providers: string[] | Volatile<string[]>
+  /**
+   * Emergency fallback when the history carries media the target model cannot
+   * carry on the selected face: `refuse` (default) keeps the hard gate;
+   * `mask` replaces uncarriable media blocks with deterministic meta text so
+   * a model switch stays usable. Request-local — session history is untouched.
+   */
+  modalFallback: 'refuse' | 'mask' | Volatile<'refuse' | 'mask'>
+  /**
+   * Extra input modalities per 'provider/model' or 'provider' key. The host
+   * pi-ai schema caps a model row's `input` at text|image, so video/audio
+   * declarations for omni models live here and are unioned into the model's
+   * effective `input` during dispatch. Example:
+   * `{ "xiaomi/mimo-v2.6-flash": ["video", "audio"] }`.
+   */
+  extraInputs: Record<string, string[]> | Volatile<Record<string, string[]>>
+  /** Expose the `read_video` tool (registers always; this gate applies per execution). */
+  videoTool: boolean | Volatile<boolean>
 }
 
 /**
- * Composition-entry schema. Both fields are `.volatile()`: DSH 0.1.7+ hands
+ * Composition-entry schema. Every field is `.volatile()`: DSH 0.1.7+ hands
  * `apply` live refs and generates the settings form from the schema alone,
- * so the switch and the manual list are runtime-editable without a remount.
+ * so all knobs are runtime-editable without a remount.
  */
 export const Config = z.object({
   enabled: z.boolean().default(false).volatile(),
   providers: z.array(z.string()).default([]).volatile(),
+  modalFallback: z.union(['refuse', 'mask']).default('refuse').volatile(),
+  extraInputs: z.dict(z.array(z.union(['video', 'audio', 'pdf']))).default({}).volatile(),
+  videoTool: z.boolean().default(true).volatile(),
 })
 
 /** Settings defaults, kept in lockstep with the schema defaults above. */
-export const DEFAULT_CONFIG: Config = { enabled: false, providers: [] }
+export const DEFAULT_CONFIG: Config = {
+  enabled: false,
+  providers: [],
+  modalFallback: 'refuse',
+  extraInputs: {},
+  videoTool: true,
+}
 
 /** Settings namespace owned by this plugin. */
 export const SETTINGS_NAMESPACE = 'llm-openai-completions'
 
 /** Host services this plugin's dispatch path consumes (declarative inject). */
-export const inject = ['credentials', 'attachments']
+export const inject = ['credentials', 'attachments', 'tools']
 
 /** Read a `.volatile()` field: a live ref on DSH 0.1.7+, a plain value otherwise. */
 function readLive<T>(value: T | Volatile<T> | undefined, fallback: T): T {
@@ -152,11 +180,23 @@ export function apply(ctx: Context, config: Config = DEFAULT_CONFIG): void {
   // Live configuration: the legacy registered section (≤ 0.1.6, user edits
   // layered over the entry base) wins when installed; otherwise the 0.1.7+
   // composition entry with its volatile refs.
-  const current = (): { enabled: boolean; providers: string[] } => {
+/** The plugin's live configuration with volatile refs already resolved. */
+interface ResolvedConfig {
+  enabled: boolean
+  providers: string[]
+  modalFallback: 'refuse' | 'mask'
+  extraInputs: Record<string, string[]>
+  videoTool: boolean
+}
+
+  const current = (): ResolvedConfig => {
     const base = legacyRead?.() ?? config
     return {
       enabled: readLive(base.enabled, false),
       providers: readLive(base.providers, []),
+      modalFallback: readLive<'refuse' | 'mask'>(base.modalFallback, 'refuse'),
+      extraInputs: readLive<Record<string, string[]>>(base.extraInputs, {}),
+      videoTool: readLive<boolean>(base.videoTool, true),
     }
   }
 
@@ -170,7 +210,25 @@ export function apply(ctx: Context, config: Config = DEFAULT_CONFIG): void {
     () => ctx.get('attachments') as never,
     (options, apiKeyEnv) => resolveApiKey(ctx, apiKeyEnv),
     promptSources,
+    // Live policy knobs (mask fallback + extra modalities), re-read per stream.
+    (): AdapterPolicy => {
+      const cfg = current()
+      return { modalFallback: cfg.modalFallback, extraInputs: cfg.extraInputs }
+    },
   )
+
+  // The read_video tool: registers unconditionally (tool visibility is
+  // session-global), while the `videoTool` setting gates each execution —
+  // a settings edit applies without a remount.
+  const tools = ctx.get('tools') as { register?: (definition: unknown) => void } | undefined
+  if (typeof tools?.register === 'function') {
+    tools.register(buildVideoTool(
+      () => ctx.get('attachments'),
+      () => ({ videoTool: current().videoTool }),
+    ))
+  } else {
+    ctx.logger?.debug?.('[llm-openai-completions] no tools service mounted; read_video not registered')
+  }
 
   // Take over the llm/stream waterfall for taken-over routes. prepend keeps
   // this listener OUTERMOST (runs last), so a takeover short-circuits pi-ai;
