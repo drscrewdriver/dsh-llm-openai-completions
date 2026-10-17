@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.3 — 宿主 0.2.1-rc.1 补上界（2026-10-17）
+
+### 变更
+
+- **装载判据补齐 `0.2.1-rc.1`**：`engines.dsh`、三个 `@deepseek-ai/dsh-*` peer、`dsh.plugin.json` engines
+  统一改为全 16 线精确枚举（`0.1.0-rc.2 … 0.2.1-rc.1`，逐 rc 单列，禁区间/caret）。
+- **devDependencies 三 peer 改钉 `0.2.1-rc.1`**：typecheck 真跑在 rc.1 API 上，消除 devDeps 假绿盲区。
+- 补 `publishConfig.registry`（钉死 https://registry.npmjs.org）。
+- README/INSTALL 兼容句与 `scripts/audit-host-faces.mjs` 矩阵随移至 16 线。
+- 无代码行为改动：LLM 序列化面（`options.messages`、`llmOpenaiCompletions` 接缝、`enable_thinking` /
+  `</think>` split）在 rc.1 下 typecheck+build+test 全绿，未见断裂。
+
 ## 0.4.2 — 视频工具与形状降级（2026-10-13）
 
 ### 新增

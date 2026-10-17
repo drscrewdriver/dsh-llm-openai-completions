@@ -1,6 +1,6 @@
 # Guide d'installation (CLI officielle DSH)
 
-> ✅ **Ressuscité en 0.3.0 (2026-10-05).** Ce guide couvre la prise de contrôle du transport ressuscitée — compatibilité dynamique de tous les rc de `0.1.0-rc.8` à `0.2.0-rc.2`.
+> ✅ **Ressuscité en 0.3.0 (2026-10-05).** Ce guide couvre la prise de contrôle du transport ressuscitée — compatibilité dynamique de tous les rc de `0.1.0-rc.8` à `0.2.1-rc.1`.
 
 Ce guide n'utilise que la commande officielle `dsh plugin` de DSH.
 

@@ -132,7 +132,7 @@ them and picks per route:
   system prompt: have the model self-check a tool prefix and answer by the result).
   The trajectory panel only verifies assembly-layer artifacts.
 - Peer contract: `@deepseek-ai/dsh-*` packages are runtime-provided (never
-  `dependencies`); the enum covers the FULL 15-rc matrix (0.1.0-rc.2 … 0.2.0-rc.2, see
+  `dependencies`); the enum covers the FULL 16-rc matrix (0.1.0-rc.2 … 0.2.1-rc.1, see
   scripts/audit-host-faces.mjs), written identically at all three gate points
   (package.json engines, dsh.plugin.json engines, peerDependencies) — a cross-line
   RANGE is a false claim (semver prerelease matching only hits same-tuple comparators).

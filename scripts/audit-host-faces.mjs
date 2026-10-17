@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Host dependency-surface audit across the 15-rc matrix: pack each rc of the
+ * Host dependency-surface audit across the 16-rc matrix: pack each rc of the
  * @deepseek-ai packages this plugin consumes and grep the export surface it
  * needs. Prints the per-rc verdict table to stdout.
  */
@@ -13,7 +13,7 @@ const RCS = [
   '0.1.0-rc.2', '0.1.0-rc.3', '0.1.0-rc.6', '0.1.0-rc.7', '0.1.0-rc.8',
   '0.1.1-rc.1', '0.1.1-rc.2', '0.1.2-rc.1',
   '0.1.5-rc.1', '0.1.5-rc.2', '0.1.5-rc.3',
-  '0.1.7-rc.1', '0.1.7-rc.2', '0.2.0-rc.1', '0.2.0-rc.2',
+  '0.1.7-rc.1', '0.1.7-rc.2', '0.2.0-rc.1', '0.2.0-rc.2', '0.2.1-rc.1',
 ]
 
 const CHECKS = {
