@@ -1,6 +1,6 @@
 # Installationsleitfaden (Offizielle DSH CLI)
 
-> ✅ **Wiederaufleben als 0.3.0 (2026-10-05).** Dieser Leitfaden deckt die wiederbelebte Transportübernahme ab — volle rc-dynamische Kompatibilität von `0.1.0-rc.8` bis `0.2.1-rc.1`.
+> ✅ **Wiederaufleben als 0.3.0 (2026-10-05).** Dieser Leitfaden deckt die wiederbelebte Transportübernahme ab — volle rc-dynamische Kompatibilität von `0.1.0-rc.8` bis `0.2.1-rc.2`.
 
 Dieser Leitfaden nutzt nur den offiziellen DSH-`dsh plugin`-Befehl.
 

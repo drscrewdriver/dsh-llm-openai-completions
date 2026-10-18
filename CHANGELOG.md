@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.4 (2026-10-18)
+
+- hosts: 追加 0.2.1-rc.2 声明面枚举（34/34 @deepseek-ai/* 宿主 peer 逐包 npm 实测 rc.2 在版；本插件不触 ctx.web provider 与 conversation.input.model.label 槽，代码零改动，纯元数据发版；农场 rc.2 格挂账待命）
+
 ## 0.4.3 — 宿主 0.2.1-rc.1 补上界（2026-10-17）
 
 ### 变更
