@@ -1,6 +1,6 @@
 # dsh-llm-openai-completions
 
-> ✅ **Wiederaufleben als 0.3.0 (2026-10-05).** Die Transportübernahme ist mit echten Funktionen zurück, die pi-ai nicht bieten kann: multimodale Echtzeitsendung (Bild/Audio/Video/PDF) mit hartherzigem Modalitätsgate, eine `llmOpenaiCompletions`-Prompt-Quell-Schnittstelle für dsh-promptbook-artige Konsumenten, Credentials-Service-Schlüssel und volle rc-dynamische Kompatibilität über `0.1.0-rc.8` – `0.2.1-rc.2`. Die alte `settings.get`-Architektur ist a.D. — die Beurteilung lautet `enabled && providers.includes(route)` (reine manuelle Mitgliedschaft: das Routing-Kontrollkästchen ist die Wahrheit), der Schalter liegt in der eigenen Einstellungssektion dieses Plugins. Vertragsflächen: [AGENTS.md](./AGENTS.md).
+> ✅ **Wiederaufleben als 0.3.0 (2026-10-05).** Die Transportübernahme ist mit echten Funktionen zurück, die pi-ai nicht bieten kann: multimodale Echtzeitsendung (Bild/Audio/Video/PDF) mit hartherzigem Modalitätsgate, eine `llmOpenaiCompletions`-Prompt-Quell-Schnittstelle für dsh-promptbook-artige Konsumenten, Credentials-Service-Schlüssel und volle rc-dynamische Kompatibilität über `0.1.0-rc.8` – `0.2.1-rc.3`. Die alte `settings.get`-Architektur ist a.D. — die Beurteilung lautet `enabled && providers.includes(route)` (reine manuelle Mitgliedschaft: das Routing-Kontrollkästchen ist die Wahrheit), der Schalter liegt in der eigenen Einstellungssektion dieses Plugins. Vertragsflächen: [AGENTS.md](./AGENTS.md).
 
 **Positionierung**: als Short-Circuit-Backend wiederauflebt, das dsh-thinking-levels antreiben kann — das **alle drei gängigen API-Formate** je Routen-`api`-Deklaration spricht (OpenAI Chat Completions · Anthropic Messages · OpenAI Responses), primär für Xiaomi-MiMo-Multimodal gebaut: echte Audio-/Video-/PDF-Sendung.
 
@@ -93,7 +93,7 @@ Live-Screenshot — **gemeinsam mit dsh-thinking-levels betrieben**: das Denkfä
 
 ## Installation
 
-Host-Kompatibilität: **jedes rc von `0.1.0-rc.8` bis `0.2.1-rc.2`**, im Code versionsbedingt (formenerkannte Settings-Flächen, ein `ToolCallId`/`CallId`-Shim, Credentials → Launch-Umgebung → `process.env`-Schlüsselauflösung). Alle Wege im [Installationsleitfaden](./INSTALL.de.md):
+Host-Kompatibilität: **jedes rc von `0.1.0-rc.8` bis `0.2.1-rc.3`**, im Code versionsbedingt (formenerkannte Settings-Flächen, ein `ToolCallId`/`CallId`-Shim, Credentials → Launch-Umgebung → `process.env`-Schlüsselauflösung). Alle Wege im [Installationsleitfaden](./INSTALL.de.md):
 
 ```bash
 # npm (empfohlen)

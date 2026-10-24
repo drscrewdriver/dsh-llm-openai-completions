@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.4.5 (2026-10-24)
+
+- hosts: 追加 `0.2.1-rc.3` 声明面枚举（17→18 档；rc.2→rc.3 契约面零断裂——host-matrix 14 列配对探针复核 + source-analysis v0.2.1-rc.3 四件套，本插件不触 ctx.web provider 钉选/模型标签槽/startSession 调用面，代码零改动，纯元数据发版）
 ## 0.4.4 (2026-10-18)
 
 - hosts: 追加 0.2.1-rc.2 声明面枚举（34/34 @deepseek-ai/* 宿主 peer 逐包 npm 实测 rc.2 在版；本插件不触 ctx.web provider 与 conversation.input.model.label 槽，代码零改动，纯元数据发版；农场 rc.2 格挂账待命）

@@ -1,6 +1,6 @@
 # dsh-llm-openai-completions
 
-> ✅ **Revived as 0.3.0 (2026-10-05).** The transport takeover is back with real features pi-ai cannot offer: multimodal true-send (image/audio/video/PDF) with a modality hard gate, an `llmOpenaiCompletions` prompt-source seam for dsh-promptbook-class consumers, credentials-service keys, and full-rc dynamic compatibility across `0.1.0-rc.8` – `0.2.1-rc.2`. The old `settings.get`-era architecture is gone — the judgment is `enabled && providers.includes(route)` (pure manual membership: the per-route checkbox is the truth), and the switch lives in this plugin's own settings section. Contract surfaces: [AGENTS.md](./AGENTS.md).
+> ✅ **Revived as 0.3.0 (2026-10-05).** The transport takeover is back with real features pi-ai cannot offer: multimodal true-send (image/audio/video/PDF) with a modality hard gate, an `llmOpenaiCompletions` prompt-source seam for dsh-promptbook-class consumers, credentials-service keys, and full-rc dynamic compatibility across `0.1.0-rc.8` – `0.2.1-rc.3`. The old `settings.get`-era architecture is gone — the judgment is `enabled && providers.includes(route)` (pure manual membership: the per-route checkbox is the truth), and the switch lives in this plugin's own settings section. Contract surfaces: [AGENTS.md](./AGENTS.md).
 
 **Positioning**: revived as a short-circuit backend that dsh-thinking-levels can drive — speaking **all three mainstream API formats** per route `api` declaration (OpenAI Chat Completions · Anthropic Messages · OpenAI Responses), built primarily for Xiaomi MiMo multimodal: true audio/video/PDF send.
 
@@ -94,7 +94,7 @@ level dropdown (Default / Off / On). It demonstrates the capability-detection �
 
 ## Install
 
-Host compatibility: **every rc from `0.1.0-rc.8` through `0.2.1-rc.2`**, version-conditional in code (shape-detected settings faces, a `ToolCallId`/`CallId` shim, credentials → launch-environment → `process.env` key resolution). See the [install guide](./INSTALL.md) for all routes:
+Host compatibility: **every rc from `0.1.0-rc.8` through `0.2.1-rc.3`**, version-conditional in code (shape-detected settings faces, a `ToolCallId`/`CallId` shim, credentials → launch-environment → `process.env` key resolution). See the [install guide](./INSTALL.md) for all routes:
 
 ```bash
 # npm (recommended)

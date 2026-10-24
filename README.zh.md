@@ -1,6 +1,6 @@
 # dsh-llm-openai-completions
 
-> ✅ **0.3.0 复活（2026-10-05）。** 传输接管回归，带着 pi-ai 给不了的真功能：多模态真发（图片/音频/视频/PDF）+ 模态硬门禁、面向 dsh-promptbook 类消费方的 `llmOpenaiCompletions` 提示词源口子、凭据服务密钥，以及 `0.1.0-rc.8` – `0.2.1-rc.2` 全 rc 动态兼容。旧的 `settings.get` 世代架构已退役——判定为 `enabled && providers.includes(route)`（纯手工名单：逐路由勾选框就是真相），开关就在本插件自己的设置区。契约面：[AGENTS.md](./AGENTS.md)。
+> ✅ **0.3.0 复活（2026-10-05）。** 传输接管回归，带着 pi-ai 给不了的真功能：多模态真发（图片/音频/视频/PDF）+ 模态硬门禁、面向 dsh-promptbook 类消费方的 `llmOpenaiCompletions` 提示词源口子、凭据服务密钥，以及 `0.1.0-rc.8` – `0.2.1-rc.3` 全 rc 动态兼容。旧的 `settings.get` 世代架构已退役——判定为 `enabled && providers.includes(route)`（纯手工名单：逐路由勾选框就是真相），开关就在本插件自己的设置区。契约面：[AGENTS.md](./AGENTS.md)。
 
 **定位**：作为 dsh-thinking-levels 可挂接的短路后端复活——按路由 `api` 声明**实装全部三种主流 API 格式**（OpenAI Chat Completions · Anthropic Messages · OpenAI Responses），主要为小米 MiMo 多模态打造：音视频与 PDF 真发。
 
@@ -93,7 +93,7 @@ llm-pi-ai:
 
 ## 安装
 
-宿主兼容：**`0.1.0-rc.8` 至 `0.2.1-rc.2` 的每个 rc**，代码内按版本条件兼容（形状检测的 settings 面、`ToolCallId`/`CallId` shim、凭据 credentials → 启动环境 → `process.env` 三级链）。全部安装途径见[安装指南](./INSTALL.zh.md)：
+宿主兼容：**`0.1.0-rc.8` 至 `0.2.1-rc.3` 的每个 rc**，代码内按版本条件兼容（形状检测的 settings 面、`ToolCallId`/`CallId` shim、凭据 credentials → 启动环境 → `process.env` 三级链）。全部安装途径见[安装指南](./INSTALL.zh.md)：
 
 ```bash
 # npm（推荐）

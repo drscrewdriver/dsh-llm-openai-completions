@@ -1,6 +1,6 @@
 # dsh-llm-openai-completions
 
-> ✅ **0.3.0 で復活（2026-10-05）。** トランスポートテイクオーバーが、pi-ai には無い本当の機能と共に帰ってきました：マルチモーダル真送信（画像/音声/動画/PDF）＋モーダル硬性ゲート、dsh-promptbook 系コンシューマ向けの `llmOpenaiCompletions` プロンプトソース口、クレデンシャルサービス鍵、そして `0.1.0-rc.8` – `0.2.1-rc.2` の全 rc 動的互換。旧 `settings.get` 時代のアーキテクチャは退役——判定は `enabled && providers.includes(route)`（純手動メンバーシップ：ルート毎チェックボックスが真実）で、スイッチは本プラグイン自身の設定セクションにあります。契約面：[AGENTS.md](./AGENTS.md)。
+> ✅ **0.3.0 で復活（2026-10-05）。** トランスポートテイクオーバーが、pi-ai には無い本当の機能と共に帰ってきました：マルチモーダル真送信（画像/音声/動画/PDF）＋モーダル硬性ゲート、dsh-promptbook 系コンシューマ向けの `llmOpenaiCompletions` プロンプトソース口、クレデンシャルサービス鍵、そして `0.1.0-rc.8` – `0.2.1-rc.3` の全 rc 動的互換。旧 `settings.get` 時代のアーキテクチャは退役——判定は `enabled && providers.includes(route)`（純手動メンバーシップ：ルート毎チェックボックスが真実）で、スイッチは本プラグイン自身の設定セクションにあります。契約面：[AGENTS.md](./AGENTS.md)。
 
 **ポジショニング**：dsh-thinking-levels が結合可能なショートサーキットバックエンドとして復活——ルート毎の `api` 宣言に応じた**三大主流 API フォーマットを全実装**（OpenAI Chat Completions · Anthropic Messages · OpenAI Responses）、シャオミ MiMo マルチモーダルのために構築：音声・動画・PDF の真送信。
 
@@ -93,7 +93,7 @@ llm-pi-ai:
 
 ## インストール
 
-ホスト互換：**`0.1.0-rc.8` から `0.2.1-rc.2` までの全 rc**、コード内でバージョン条件付き互換（形状検出 settings 面、`ToolCallId`/`CallId` shim、クレデンシャル credentials → 起動環境 → `process.env` の 3 段チェーン）。全導入経路は[インストールガイド](./INSTALL.ja.md)へ：
+ホスト互換：**`0.1.0-rc.8` から `0.2.1-rc.3` までの全 rc**、コード内でバージョン条件付き互換（形状検出 settings 面、`ToolCallId`/`CallId` shim、クレデンシャル credentials → 起動環境 → `process.env` の 3 段チェーン）。全導入経路は[インストールガイド](./INSTALL.ja.md)へ：
 
 ```bash
 # npm（推奨）

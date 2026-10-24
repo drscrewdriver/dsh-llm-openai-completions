@@ -1,6 +1,6 @@
 # Install Guide (Official DSH CLI)
 
-> ✅ **Revived as 0.3.0 (2026-10-05).** This guide covers the revived transport takeover — full-rc dynamic compatibility from `0.1.0-rc.8` through `0.2.1-rc.2`.
+> ✅ **Revived as 0.3.0 (2026-10-05).** This guide covers the revived transport takeover — full-rc dynamic compatibility from `0.1.0-rc.8` through `0.2.1-rc.3`.
 
 This guide uses only the official DSH `dsh plugin` command.
 
