@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.6 (2026-10-28)
+
+- hosts: 追加 `0.2.1-rc.4` 声明面枚举（18→19 档；dsh-* peer 三包 credentials/launch-environment/llm 均 npm 实测 rc.4 在版；rc.3→rc.4 全段 9 commits 仅触 ACP/MCP stdout 诊断与 UI tooltip，本插件不消费该面，代码零改动纯元数据发版；农场 rc.4 格挂账待命）
+
 ## 0.4.5 (2026-10-24)
 
 - hosts: 追加 `0.2.1-rc.3` 声明面枚举（17→18 档；rc.2→rc.3 契约面零断裂——host-matrix 14 列配对探针复核 + source-analysis v0.2.1-rc.3 四件套，本插件不触 ctx.web provider 钉选/模型标签槽/startSession 调用面，代码零改动，纯元数据发版）

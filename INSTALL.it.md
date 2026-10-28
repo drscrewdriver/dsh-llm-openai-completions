@@ -1,6 +1,6 @@
 # Guida all'installazione (CLI ufficiale DSH)
 
-> ✅ **Rinato in vita come 0.3.0 (2026-10-05).** Questa guida copre la presa in carico del trasporto rinata — compatibilità dinamica di tutti gli rc da `0.1.0-rc.8` a `0.2.1-rc.3`.
+> ✅ **Rinato in vita come 0.3.0 (2026-10-05).** Questa guida copre la presa in carico del trasporto rinata — compatibilità dinamica di tutti gli rc da `0.1.0-rc.8` a `0.2.1-rc.4`.
 
 Questa guida usa solo il comando ufficiale `dsh plugin` di DSH.
 

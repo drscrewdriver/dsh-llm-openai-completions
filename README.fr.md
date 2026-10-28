@@ -1,6 +1,6 @@
 # dsh-llm-openai-completions
 
-> ✅ **Ressuscité en 0.3.0 (2026-10-05).** La prise de contrôle du transport est de retour avec de vraies fonctions que pi-ai ne peut pas offrir : envoi véritablement multimodal (image/audio/vidéo/PDF) avec une porte dure de modalité, une couture de source de prompt `llmOpenaiCompletions` pour les consommateurs de type dsh-promptbook, des clés via le service de credentials et une compatibilité dynamique de tous les rc de `0.1.0-rc.8` à `0.2.1-rc.3`. L'architecture de l'ère `settings.get` est retirée — le jugement est `enabled && providers.includes(route)` (appartenance purement manuelle : la case à cocher par route est la vérité) et l'interrupteur vit dans la propre section de réglages de ce plugin. Surfaces de contrat : [AGENTS.md](./AGENTS.md).
+> ✅ **Ressuscité en 0.3.0 (2026-10-05).** La prise de contrôle du transport est de retour avec de vraies fonctions que pi-ai ne peut pas offrir : envoi véritablement multimodal (image/audio/vidéo/PDF) avec une porte dure de modalité, une couture de source de prompt `llmOpenaiCompletions` pour les consommateurs de type dsh-promptbook, des clés via le service de credentials et une compatibilité dynamique de tous les rc de `0.1.0-rc.8` à `0.2.1-rc.4`. L'architecture de l'ère `settings.get` est retirée — le jugement est `enabled && providers.includes(route)` (appartenance purement manuelle : la case à cocher par route est la vérité) et l'interrupteur vit dans la propre section de réglages de ce plugin. Surfaces de contrat : [AGENTS.md](./AGENTS.md).
 
 **Positionnement** : ressuscité comme backend de court-circuit que dsh-thinking-levels peut actionner — parlant **les trois formats API courants** selon la déclaration `api` de chaque route (OpenAI Chat Completions · Anthropic Messages · OpenAI Responses), construit principalement pour le multimodal de Xiaomi MiMo : envoi réel audio/vidéo/PDF.
 
@@ -93,7 +93,7 @@ Capture en direct — **alimenté ensemble avec dsh-thinking-levels** : le menu 
 
 ## Installation
 
-Compatibilité hôte : **chaque rc de `0.1.0-rc.8` à `0.2.1-rc.3`**, conditionnel par version dans le code (faces de settings détectées par forme, un shim `ToolCallId`/`CallId`, résolution de clé credentials → environnement de lancement → `process.env`). Toutes les voies dans le [guide d'installation](./INSTALL.fr.md) :
+Compatibilité hôte : **chaque rc de `0.1.0-rc.8` à `0.2.1-rc.4`**, conditionnel par version dans le code (faces de settings détectées par forme, un shim `ToolCallId`/`CallId`, résolution de clé credentials → environnement de lancement → `process.env`). Toutes les voies dans le [guide d'installation](./INSTALL.fr.md) :
 
 ```bash
 # npm (recommandé)

@@ -1,6 +1,6 @@
 # dsh-llm-openai-completions
 
-> ✅ **0.3.0 부활(2026-10-05).** 트랜스포트 테이크오버가 pi-ai로는 불가능한 실기능을 갖추어 돌아왔습니다: 멀티모달 참전송(이미지/오디오/비디오/PDF)＋모달리티 하드 게이트, dsh-promptbook 계열 컨슈머용 `llmOpenaiCompletions` 프롬프트 소스 통로, 크리덴셜 서비스 키, 그리고 `0.1.0-rc.8` – `0.2.1-rc.3` 전 rc 동적 호환. 구 `settings.get` 시대 아키텍처는 은퇴——판정은 `enabled && providers.includes(route)`(순수 수동 멤버십: 라우트별 체크박스가 진실)이며 스위치는 본 플러그인 자신의 설정 섹션에 있습니다. 계약 면: [AGENTS.md](./AGENTS.md).
+> ✅ **0.3.0 부활(2026-10-05).** 트랜스포트 테이크오버가 pi-ai로는 불가능한 실기능을 갖추어 돌아왔습니다: 멀티모달 참전송(이미지/오디오/비디오/PDF)＋모달리티 하드 게이트, dsh-promptbook 계열 컨슈머용 `llmOpenaiCompletions` 프롬프트 소스 통로, 크리덴셜 서비스 키, 그리고 `0.1.0-rc.8` – `0.2.1-rc.4` 전 rc 동적 호환. 구 `settings.get` 시대 아키텍처는 은퇴——판정은 `enabled && providers.includes(route)`(순수 수동 멤버십: 라우트별 체크박스가 진실)이며 스위치는 본 플러그인 자신의 설정 섹션에 있습니다. 계약 면: [AGENTS.md](./AGENTS.md).
 
 **포지셔닝**: dsh-thinking-levels가 결합 가능한 쇼트서킷 백엔드로 부활——라우트별 `api` 선언에 따라 **세 가지 주류 API 포맷을 모두 구현**했습니다(OpenAI Chat Completions · Anthropic Messages · OpenAI Responses——샤오미 MiMo 멀티모달을 위한 오디오/비디오/PDF 참전송).
 
@@ -93,7 +93,7 @@ llm-pi-ai:
 
 ## 설치
 
-호스트 호환: **`0.1.0-rc.8`부터 `0.2.1-rc.3`까지 모든 rc**, 코드 내 버전 조건부 호환(형상 검출 settings 면, `ToolCallId`/`CallId` shim, 크리덴셜 credentials → 런치 환경 → `process.env` 3단 체인). 모든 설치 경로는 [설치 가이드](./INSTALL.ko.md)로:
+호스트 호환: **`0.1.0-rc.8`부터 `0.2.1-rc.4`까지 모든 rc**, 코드 내 버전 조건부 호환(형상 검출 settings 면, `ToolCallId`/`CallId` shim, 크리덴셜 credentials → 런치 환경 → `process.env` 3단 체인). 모든 설치 경로는 [설치 가이드](./INSTALL.ko.md)로:
 
 ```bash
 # npm(권장)
