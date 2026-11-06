@@ -76,7 +76,8 @@
     "vitest": "^3.0.0"
   },
   "publishConfig": {
-    "registry": "https://registry.npmjs.org"
+    "registry": "https://registry.npmjs.org",
+    "tag": "latest"
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
