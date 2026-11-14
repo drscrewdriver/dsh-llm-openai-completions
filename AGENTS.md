@@ -132,12 +132,15 @@ them and picks per route:
   system prompt: have the model self-check a tool prefix and answer by the result).
   The trajectory panel only verifies assembly-layer artifacts.
 - Peer contract: `@deepseek-ai/dsh-*` packages are runtime-provided (never
-  `dependencies`); the enum covers the FULL 16-rc matrix (0.1.0-rc.2 … 0.2.1-rc.1, see
-  scripts/audit-host-faces.mjs), written identically at all three gate points
-  (package.json engines, dsh.plugin.json engines, peerDependencies) — a cross-line
-  RANGE is a false claim (semver prerelease matching only hits same-tuple comparators).
+  `dependencies`); `peerDependencies` keep the FULL 16-rc enum (0.1.0-rc.2 … 0.2.1-rc.1, see
+  `scripts/audit-host-faces.mjs`). **The two `engines.dsh` write points do NOT use the enum**
+  (2026-11-14 bounds migration): they carry the bounded range `>=0.1.0-rc.2 <0.3.0`, matching
+  the `dsh-date-wrapper` / `dsh-cookie-cleaner` shape. Peers must stay enumerated because
+  npm/pnpm resolve without `includePrerelease` (a range there would only hit the floor cell +
+  stable releases and ERESOLVE on the intervening rcs); the host gate evaluates with
+  `includePrerelease: true`, so the range is the correct declaration there.
   Version-conditionality lives in the code: shape-detected settings faces, the
-  ToolCallId/CallId shim, feature-detected attachment reads. Widen the enum only with
+  ToolCallId/CallId shim, feature-detected attachment reads. Widen either side only with
   the audit + a host-matrix run.
 - `settings.get(ns)` does not exist on any supported host — reads go through
   `describe()` (`src/settings-read.ts`); writes through `settings.update(ns, patch)`

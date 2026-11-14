@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.8 (2026-11-14)
+
+- **宿主声明改有界区间（版本上下限改造）**：两处 `engines.dsh`（`package.json` / `dsh.plugin.json`）
+  由逐 rc 精确枚举改为 `>=0.1.0-rc.2 <0.3.0`——下限＝原枚举起点，上限不含 0.3 线；0.2.x 线上
+  后续新 rc 无需重发版即可安装。
+- **peer 不动**：三个 `@deepseek-ai/dsh-*` peer 仍逐 rc 枚举（npm/pnpm 解析不带
+  `includePrerelease`，peer 写区间会漏中间 rc 导致 ERESOLVE）。`AGENTS.md` 契约句同步改写。
+- 纯元数据发版，代码零改动；vitest 122/122 绿。
+
+## 0.4.7 (2026-11-01)
+
+- 版本号推进（本版 CHANGELOG 条目缺失，据 package.json 与 dist-tag 对账为已发布版）。
+
 ## 0.4.6 (2026-10-28)
 
 - hosts: 追加 `0.2.1-rc.4` 声明面枚举（18→19 档；dsh-* peer 三包 credentials/launch-environment/llm 均 npm 实测 rc.4 在版；rc.3→rc.4 全段 9 commits 仅触 ACP/MCP stdout 诊断与 UI tooltip，本插件不消费该面，代码零改动纯元数据发版；农场 rc.4 格挂账待命）
