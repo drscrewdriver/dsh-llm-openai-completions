@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "OpenAI-Completions-Transportübernahme",
+    "description": "OpenAI-completions-kompatible Transportübernahme für Custom-Gateways (vLLM / LM Studio / selbst gehostete OpenAI-Proxies): Das Plugin short-circuited den llm/stream-Wasserfall für übernommene Routen mit nie ratendem Verhalten — system ist immer role \"system\", Thinking wird von der Modell-compat-Konfiguration gesteuert und auf der Empfangsseite gespalten, echter multimodaler Versand wird durch die deklarierten Modalitäten begrenzt. Die Datenebene (baseURL / models / reasoningEfforts / compat / input) bleibt in llm-pi-ai und wird live über settings.describe() gelesen."
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "OpenAI Completions Takeover",
+    "description": "OpenAI-completions-compatible transport takeover for custom gateways (vLLM / LM Studio / self-hosted OpenAI proxies): the plugin short-circuits the llm/stream waterfall for taken-over routes and serves them with behavior that never guesses — system is always role \"system\", thinking is driven by the model compat config and split on the receive side, with true multimodal send gated by each model's declared input modalities. The data plane (baseURL / models / reasoningEfforts / compat / input) stays in llm-pi-ai, read live through settings.describe()."
+  }
+}

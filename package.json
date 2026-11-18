@@ -1,6 +1,6 @@
 {
   "name": "dsh-llm-openai-completions",
-  "version": "0.4.8",
+  "version": "0.4.10",
   "description": "OpenAI-completions-compatible transport takeover for custom gateways (vLLM / LM Studio / self-hosted proxies): always role:\"system\", enable_thinking / chat_template_kwargs / reasoning_effort driven by the llm-pi-ai model config, a </think> split on the receive side, multimodal true-send (image/audio/video/PDF) with a modality gate, and an llmOpenaiCompletions prompt-source seam — no pi-ai behavior guessing.",
   "type": "module",
   "repository": {
@@ -15,6 +15,7 @@
       "types": "./lib/index.d.ts",
       "default": "./lib/index.js"
     },
+    "./locale/*.json": "./locale/*.json",
     "./package.json": "./package.json"
   },
   "files": [
@@ -43,7 +44,10 @@
     "README.ru.md",
     "INSTALL.ru.md",
     "INSTALL.ja.md",
-    "INSTALL.ko.md"
+    "INSTALL.ko.md",
+    "locale",
+    "README.pt.md",
+    "INSTALL.pt.md"
   ],
   "engines": {
     "node": ">=22.19.0 || >=24.0.0",

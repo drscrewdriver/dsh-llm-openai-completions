@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Toma de control de transporte OpenAI Completions",
+    "description": "Toma de control de transporte compatible con OpenAI-completions para gateways personalizados (vLLM / LM Studio / proxies OpenAI autoalojados): el plugin cortocircuita la cascada llm/stream para las rutas tomadas y las sirve con un comportamiento que nunca adivina — system es siempre role \"system\", el thinking lo dirige la configuración compat del modelo y se divide en el lado de recepción, y el envío multimodal real está sujeto a una compuerta de modalidades declaradas. El plano de datos (baseURL / models / reasoningEfforts / compat / input) permanece en llm-pi-ai, leído en vivo vía settings.describe()."
+  }
+}

@@ -6,9 +6,9 @@
 
 ## README languages / 说明文档
 
-[English](./README.md) · [中文](./README.zh.md) · 日本語 · [한국어](./README.ko.md) · [Deutsch](./README.de.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · [Русский](./README.ru.md)
+[English](./README.md) · [中文](./README.zh.md) · 日本語 · [한국어](./README.ko.md) · [Deutsch](./README.de.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · [Русский](./README.ru.md) · [Português](./README.pt.md)
 
-インストールガイド：[EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · 日本語 · [한국어](./INSTALL.ko.md) · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) — [変更履歴](./CHANGELOG.md)
+インストールガイド：[EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · 日本語 · [한국어](./INSTALL.ko.md) · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) · [PT](./INSTALL.pt.md) — [変更履歴](./CHANGELOG.md)
 
 **カスタムゲートウェイ向け OpenAI-completions 互換トランスポートテイクオーバー**（vLLM / LM Studio / セルフホスト OpenAI プロキシ）：テイクオーバーされたルートの `llm/stream` ウォーターフォールをショートサーキットし、推測しない挙動で提供します——データプレーン（baseURL / models / `reasoningEfforts` / `compat` / `input`）は **llm-pi-ai** に留まり、`settings.describe()` でリアルタイム読み取りされます。
 

@@ -6,9 +6,9 @@
 
 ## README languages / 说明文档
 
-[English](./README.md) · [中文](./README.zh.md) · [日本語](./README.ja.md) · 한국어 · [Deutsch](./README.de.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · [Русский](./README.ru.md)
+[English](./README.md) · [中文](./README.zh.md) · [日本語](./README.ja.md) · 한국어 · [Deutsch](./README.de.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · [Русский](./README.ru.md) · [Português](./README.pt.md)
 
-설치 가이드: [EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · [日本語](./INSTALL.ja.md) · 한국어 · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) — [변경 로그](./CHANGELOG.md)
+설치 가이드: [EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · [日本語](./INSTALL.ja.md) · 한국어 · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) · [PT](./INSTALL.pt.md) — [변경 로그](./CHANGELOG.md)
 
 **커스텀 게이트웨이용 OpenAI-completions 호환 트랜스포트 테이크오버**(vLLM / LM Studio / 자체 호스팅 OpenAI 프록시): 테이크오버된 라우트의 `llm/stream` 워터폴을 쇼트서킷하고, 추측 없는 동작으로 서비스합니다——데이터 플레인(baseURL / models / `reasoningEfforts` / `compat` / `input`)은 **llm-pi-ai**에 남고 `settings.describe()`로 실시간 읽습니다.
 

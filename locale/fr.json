@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Reprise de transport OpenAI Completions",
+    "description": "Reprise de transport compatible OpenAI-completions pour les passerelles personnalisées (vLLM / LM Studio / proxys OpenAI auto-hébergés) : le court-circuite la cascade llm/stream pour les routes reprises et les sert avec un comportement qui ne devine jamais — system est toujours role « system », la réflexion est pilotée par la configuration compat du modèle et divisée à la réception, l'envoi multimodal réel est soumis à une porte d'entrée déclarée. Le plan de données (baseURL / models / reasoningEfforts / compat / input) reste dans llm-pi-ai, lu en direct via settings.describe()."
+  }
+}

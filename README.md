@@ -6,9 +6,9 @@
 
 ## README languages / 说明文档
 
-English · [中文](./README.zh.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Deutsch](./README.de.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · [Русский](./README.ru.md)
+English · [中文](./README.zh.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Deutsch](./README.de.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · [Русский](./README.ru.md) · [Português](./README.pt.md)
 
-Install guides: [EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · [日本語](./INSTALL.ja.md) · [한국어](./INSTALL.ko.md) · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) — [Changelog](./CHANGELOG.md)
+Install guides: [EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · [日本語](./INSTALL.ja.md) · [한국어](./INSTALL.ko.md) · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) · [PT](./INSTALL.pt.md) — [Changelog](./CHANGELOG.md)
 
 **OpenAI-completions-compatible transport takeover for custom gateways** (vLLM / LM Studio / self-hosted OpenAI proxies): the plugin short-circuits the `llm/stream` waterfall for taken-over routes and serves them with behavior that never guesses — the data plane (baseURL / models / `reasoningEfforts` / `compat` / `input`) stays in **llm-pi-ai**, read live through `settings.describe()`.
 

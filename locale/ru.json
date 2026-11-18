@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Перехват транспорта OpenAI Completions",
+    "description": "Перехват транспорта, совместимый с OpenAI-completions, для пользовательских шлюзов (vLLM / LM Studio / self-hosted OpenAI-прокси): плагин коротко замыкает каскад llm/stream для перехваченных маршрутов с поведением без догадок — system всегда role \"system\", thinking управляется конфигурацией compat модели и разделяется на стороне приёма, настоящая мультимодальная отправка ограниченаDeclared входными модальностями. Плоскость данных (baseURL / models / reasoningEfforts / compat / input) остаётся в llm-pi-ai и читается вживую через settings.describe()."
+  }
+}

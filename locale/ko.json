@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "OpenAI Completions 트랜스포트 인수",
+    "description": "사용자 지정 게이트웨이(vLLM / LM Studio / 자체 호스팅 OpenAI 프록시)용 OpenAI-completions 호환 트랜스포트 인수: 인수된 라우트에서 llm/stream 캐스케이드를 단락하고 추측 없는 동작으로 처리한다—system은 항상 role \"system\", thinking은 모델 compat 설정에 의해 구동되고 수신 측에서 분할되며, 실제 멀티모달 전송은 선언된 input 모달리티로 게이팅된다. 데이터 플레인(baseURL / models / reasoningEfforts / compat / input)은 llm-pi-ai에 남아 settings.describe()로 실시간 읽는다."
+  }
+}

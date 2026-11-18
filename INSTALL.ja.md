@@ -4,9 +4,9 @@
 
 本ガイドは公式 `dsh plugin` コマンドのみを使用します。
 
-インストールガイド：[EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · 日本語 · [한국어](./INSTALL.ko.md) · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md)
+インストールガイド：[EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · 日本語 · [한국어](./INSTALL.ko.md) · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) · [PT](./INSTALL.pt.md)
 
-README：[EN](./README.md) · [中文](./README.zh.md) · 日本語 · [한국어](./README.ko.md) · [DE](./README.de.md) · [ES](./README.es.md) · [FR](./README.fr.md) · [IT](./README.it.md) · [RU](./README.ru.md)
+README：[EN](./README.md) · [中文](./README.zh.md) · 日本語 · [한국어](./README.ko.md) · [DE](./README.de.md) · [ES](./README.es.md) · [FR](./README.fr.md) · [IT](./README.it.md) · [RU](./README.ru.md) · [PT](./README.pt.md)
 
 ## 1. インストール
 

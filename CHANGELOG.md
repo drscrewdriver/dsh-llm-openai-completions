@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.4.10
+
+- **i18n**：新增葡萄牙语（pt-BR）locale——`locale/` 十语元数据文件（既有 zh/en/ja/ko/fr/de/it/ru/es + 新增 pt）、`package.json` files/exports 接入 `./locale/*.json`、`README.pt.md`/`INSTALL.pt.md` 镜像与全部 README/INSTALL 双向导航链接；`dsh.plugin.json` description 补 `pt` 键。
+- 说明：0.4.9 已发布但仓库未同步版本号，本次直接跳至 0.4.10。
+
 ## 0.4.8 (2026-11-14)
 
 - **宿主声明改有界区间（版本上下限改造）**：两处 `engines.dsh`（`package.json` / `dsh.plugin.json`）

@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "OpenAI Completions 传输接管",
+    "description": "面向自建网关（vLLM / LM Studio / 自托管 OpenAI 代理）的 OpenAI-completions 兼容传输接管：对已接管路由短路 llm/stream 级联，行为零猜测——固定 role \"system\"，thinking 由模型 compat 配置驱动并在接收侧拆分，多模态真发受声明 input 门控。数据面（baseURL / models / reasoningEfforts / compat / input）留在 llm-pi-ai，经 settings.describe() 实时读取。"
+  }
+}

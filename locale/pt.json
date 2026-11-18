@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "Takeover de transporte OpenAI Completions",
+    "description": "Takeover de transporte compatível com OpenAI-completions para gateways personalizados (vLLM / LM Studio / proxies OpenAI auto-hospedados): o plugin fecha em curto-circuito a cascata llm/stream para as rotas assumidas e as atende com um comportamento que nunca adivinha — system é sempre role \"system\", o thinking é dirigido pela configuração compat do modelo e dividido no lado da recepção, e o envio multimodal verdadeiro passa por uma porta dura de modalidades declaradas. O plano de dados (baseURL / models / reasoningEfforts / compat / input) permanece no llm-pi-ai, lido ao vivo via settings.describe()."
+  }
+}

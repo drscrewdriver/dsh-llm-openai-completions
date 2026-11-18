@@ -6,9 +6,9 @@
 
 ## Языки README / 说明文档
 
-[English](./README.md) · [中文](./README.zh.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Deutsch](./README.de.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · Русский
+[English](./README.md) · [中文](./README.zh.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Deutsch](./README.de.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · Русский · [Português](./README.pt.md)
 
-Руководства по установке: [EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · [日本語](./INSTALL.ja.md) · [한국어](./INSTALL.ko.md) · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) — [Журнал изменений](./CHANGELOG.md)
+Руководства по установке: [EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · [日本語](./INSTALL.ja.md) · [한국어](./INSTALL.ko.md) · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) · [PT](./INSTALL.pt.md) — [Журнал изменений](./CHANGELOG.md)
 
 **Перехват транспорта, совместимый с OpenAI-completions, для пользовательских шлюзов** (vLLM / LM Studio / самохостинговые OpenAI-прокси): плагин замыкает накоротко каскад `llm/stream` для захваченных маршрутов и обслуживает их поведением, которое никогда не гадает — плоскость данных (baseURL / models / `reasoningEfforts` / `compat` / `input`) остаётся в **llm-pi-ai** и читается вживую через `settings.describe()`.
 

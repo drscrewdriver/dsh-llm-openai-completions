@@ -6,9 +6,9 @@
 
 ## 说明文档 / README languages
 
-[English](./README.md) · 中文 · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Deutsch](./README.de.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · [Русский](./README.ru.md)
+[English](./README.md) · 中文 · [日本語](./README.ja.md) · [한국어](./README.ko.md) · [Deutsch](./README.de.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · [Русский](./README.ru.md) · [Português](./README.pt.md)
 
-安装指南：[EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · [日本語](./INSTALL.ja.md) · [한국어](./INSTALL.ko.md) · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) — [更新日志](./CHANGELOG.md)
+安装指南：[EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · [日本語](./INSTALL.ja.md) · [한국어](./INSTALL.ko.md) · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) · [PT](./INSTALL.pt.md) — [更新日志](./CHANGELOG.md)
 
 **面向自定义网关的 OpenAI-completions 兼容传输接管**（vLLM / LM Studio / 自托管 OpenAI 代理）：插件对被接管路由短路 `llm/stream` 瀑布，用从不猜测的行为服务它们——数据面（baseURL / models / `reasoningEfforts` / `compat` / `input`）留在 **llm-pi-ai**，经 `settings.describe()` 实时读取。
 

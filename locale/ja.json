@@ -1,0 +1,6 @@
+{
+  "meta": {
+    "title": "OpenAI Completions 転送引き継ぎ",
+    "description": "カスタムゲートウェイ（vLLM / LM Studio / セルフホスト OpenAI プロキシ）向けの OpenAI-completions 互換転送引き継ぎ：引き継ぎ済みルートで llm/stream キャスケードを短絡し、推測なしの挙動で応答する——system は常に role \"system\"、thinking はモデルの compat 設定に駆動され受信用側で分割、真のマルチモーダル送信は宣言済み input モダリティでゲートする。データプレーン（baseURL / models / reasoningEfforts / compat / input）は llm-pi-ai に残り、settings.describe() でライブに読む。"
+  }
+}

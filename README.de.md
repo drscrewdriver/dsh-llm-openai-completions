@@ -6,9 +6,9 @@
 
 ## README-Sprachen / 说明文档
 
-[English](./README.md) · [中文](./README.zh.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · Deutsch · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · [Русский](./README.ru.md)
+[English](./README.md) · [中文](./README.zh.md) · [日本語](./README.ja.md) · [한국어](./README.ko.md) · Deutsch · [Español](./README.es.md) · [Français](./README.fr.md) · [Italiano](./README.it.md) · [Русский](./README.ru.md) · [Português](./README.pt.md)
 
-Installationsleitfäden: [EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · [日本語](./INSTALL.ja.md) · [한국어](./INSTALL.ko.md) · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) — [Änderungsprotokoll](./CHANGELOG.md)
+Installationsleitfäden: [EN](./INSTALL.md) · [中文](./INSTALL.zh.md) · [日本語](./INSTALL.ja.md) · [한국어](./INSTALL.ko.md) · [DE](./INSTALL.de.md) · [ES](./INSTALL.es.md) · [FR](./INSTALL.fr.md) · [IT](./INSTALL.it.md) · [RU](./INSTALL.ru.md) · [PT](./INSTALL.pt.md) — [Änderungsprotokoll](./CHANGELOG.md)
 
 **OpenAI-completions-kompatible Transportübernahme für Custom-Gateways** (vLLM / LM Studio / selbst gehostete OpenAI-Proxies): Das Plugin short-circuited den `llm/stream`-Wasserfall für übernommene Routen und bedient sie mit nie ratendem Verhalten — die Datenebene (baseURL / models / `reasoningEfforts` / `compat` / `input`) bleibt in **llm-pi-ai**, live gelesen über `settings.describe()`.
 
